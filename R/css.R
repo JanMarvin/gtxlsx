@@ -1,6 +1,7 @@
 css_hex <- function(x) {
   x <- trimws(tolower(x))
-  if (!nzchar(x) || x %in% c("transparent", "none", "inherit", "initial", "currentcolor")) {
+  blank <- c("transparent", "none", "inherit", "initial", "currentcolor")
+  if (!nzchar(x) || x %in% blank) {
     return(NULL)
   }
   if (grepl("^#[0-9a-f]{8}$", x)) {
@@ -104,7 +105,15 @@ css_border <- function(style, width = NULL, base = 16) {
   if (is.na(w)) w <- 1
   switch(
     style,
-    solid = if (w >= 3) "thick" else if (w >= 2) "medium" else if (w < 1) "hair" else "thin",
+    solid = if (w >= 3) {
+      "thick"
+    } else if (w >= 2) {
+      "medium"
+    } else if (w < 1) {
+      "hair"
+    } else {
+      "thin"
+    },
     double = "double",
     dashed = if (w >= 2) "mediumDashed" else "dashed",
     dotted = "dotted",

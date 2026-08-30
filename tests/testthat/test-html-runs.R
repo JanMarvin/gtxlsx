@@ -25,13 +25,17 @@ test_that("inline css and font attributes are read", {
   expect_equal(runs[[1L]]$color, "FFFF0000")
   expect_true(runs[[1L]]$bold)
 
-  runs <- html_runs('<font color="blue" face="Georgia">y</font>')
+  runs <- html_runs(
+    '<font color="blue" face="Georgia">y</font>'
+  )
   expect_equal(runs[[1L]]$color, "FF0000FF")
   expect_equal(runs[[1L]]$font, "Georgia")
 })
 
 test_that("a class resolver reaches runs", {
-  res <- function(tag, classes) if ("hot" %in% classes) list(color = "#00FF00") else list()
+  res <- function(tag, classes) {
+    if ("hot" %in% classes) list(color = "#00FF00") else list()
+  }
   runs <- html_runs('<span class="hot">z</span>', resolver = res)
   expect_equal(runs[[1L]]$color, "FF00FF00")
 })

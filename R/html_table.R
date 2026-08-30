@@ -163,7 +163,8 @@ decl_to_rec <- function(decl, base_px) {
   if (!is.null(bg)) {
     # only reduce a "background" shorthand to its first token when that cannot
     # split an rgb()/rgba() value apart
-    hex <- css_color(if (grepl("(", bg, fixed = TRUE)) bg else sub("^([^ ]+).*$", "\\1", bg))
+    first <- if (grepl("(", bg, fixed = TRUE)) bg else sub("^([^ ]+).*$", "\\1", bg)
+    hex <- css_color(first)
     if (!is.null(hex) && !identical(substr(hex, 1L, 2L), "00")) out$fill <- hex
   }
   if (!is.null(g("color"))) out$color <- css_color(g("color"))
@@ -251,13 +252,16 @@ html_grid <- function(tbl) {
   sec <- rep(names(parts), lengths(parts))
   n <- length(rows)
   if (!n) return(NULL)
-  taken <- matrix(FALSE, nrow = n, ncol = 64L)
+  grid <- new.env(parent = emptyenv())
+  grid$taken <- matrix(FALSE, nrow = n, ncol = 64L)
   cells <- vector("list", 4L * n)
   nc <- 0L
 
   grow <- function(need) {
-    if (need > ncol(taken)) {
-      taken <<- cbind(taken, matrix(FALSE, nrow = nrow(taken), ncol = need - ncol(taken)))
+    have <- ncol(grid$taken)
+    if (need > have) {
+      grid$taken <- cbind(grid$taken,
+                          matrix(FALSE, nrow = nrow(grid$taken), ncol = need - have))
     }
   }
   span <- function(node, attr, default) {
@@ -276,12 +280,12 @@ html_grid <- function(tbl) {
     j <- 1L
     for (k in seq_along(kids)) {
       node <- kids[[k]]
-      while (j <= ncol(taken) && taken[i, j]) j <- j + 1L
+      while (j <= ncol(grid$taken) && grid$taken[i, j]) j <- j + 1L
       cs <- span(node, "colspan", 1L)
       # rowspan="0" runs to the end of its section, not the end of the table
       rs <- span(node, "rowspan", max(which(sec == sec[i])) - i + 1L)
       grow(j + cs - 1L)
-      taken[seq.int(i, min(i + rs - 1L, n)), seq.int(j, j + cs - 1L)] <- TRUE
+      grid$taken[seq.int(i, min(i + rs - 1L, n)), seq.int(j, j + cs - 1L)] <- TRUE
       nc <- nc + 1L
       if (nc > length(cells)) length(cells) <- 2L * length(cells)
       cells[[nc]] <- list(
@@ -331,6 +335,28 @@ node_decls <- function(node, rules, ancestors = NULL) {
 
 # the classes and tag names of everything above a cell, used to approximate
 # descendant combinators
+# Kept out of the writer so the cache is passed as an argument rather than
+# captured: a closure over it reads as an unused variable to static checkers.
+cached_ancestors <- function(cell, cache) {
+  key <- as.character(cell$row)
+  hit <- cache[[key]]
+  if (is.null(hit)) {
+    hit <- node_ancestors(cell$node)
+    cache[[key]] <- hit
+  }
+  hit
+}
+
+cached_anc_sig <- function(cell, cache, ancestors) {
+  key <- as.character(cell$row)
+  hit <- cache[[key]]
+  if (is.null(hit)) {
+    hit <- paste0(c("|", ancestors), collapse = ",")
+    cache[[key]] <- hit
+  }
+  hit
+}
+
 node_ancestors <- function(node) {
   out <- character(0L)
   p <- xml2::xml_parent(node)
@@ -444,7 +470,8 @@ wb_add_html <- function(wb, x, sheet = current_sheet(), dims = "A1", which = 1L,
 
   rules <- parse_stylesheet(html)
   base_px <- 16
-  root <- css_for(rules, "table", strsplit(xml2::xml_attr(tbl, "class") %||% "", "\\s+")[[1]],
+  tbl_class <- strsplit(xml2::xml_attr(tbl, "class") %||% "", "\\s+")[[1]]
+  root <- css_for(rules, "table", tbl_class,
                   xml2::xml_attr(tbl, "id"))
   if (!is.null(root[["font-size"]])) {
     base_px <- css_px(root[["font-size"]], base = 16)
@@ -479,21 +506,13 @@ wb_add_html <- function(wb, x, sheet = current_sheet(), dims = "A1", which = 1L,
   # cells repeat the same tag/class/ancestor combination over and over. Both
   # halves are cached: ancestors per row, resolved declarations per signature.
   rec_cache <- new.env(parent = emptyenv())
-  anc_cache <- vector("list", g$nrow)
-  anc_sig_cache <- character(g$nrow)
-  row_ancestors <- function(cell) {
-    if (is.null(anc_cache[[cell$row]])) {
-      anc_cache[[cell$row]] <<- node_ancestors(cell$node)
-    }
-    anc_cache[[cell$row]]
-  }
+  anc_cache <- new.env(parent = emptyenv())
+  row_ancestors <- function(cell) cached_ancestors(cell, anc_cache)
   # the cascade depends on what sits above a cell, so the cache key has to
   # carry the ancestor chain as well
+  anc_sig_cache <- new.env(parent = emptyenv())
   row_anc_sig <- function(cell) {
-    if (!nzchar(anc_sig_cache[[cell$row]])) {
-      anc_sig_cache[[cell$row]] <<- paste0(c("|", row_ancestors(cell)), collapse = ",")
-    }
-    anc_sig_cache[[cell$row]]
+    cached_anc_sig(cell, anc_sig_cache, row_ancestors(cell))
   }
   col_decl <- vector("list", max(g$ncol, 1L))
   if (length(g$cols)) {
@@ -533,7 +552,9 @@ wb_add_html <- function(wb, x, sheet = current_sheet(), dims = "A1", which = 1L,
 
   # Rows and columns rarely carry their own declarations; signing them lets the
   # per-cell cache key stay identical across a uniform table.
-  decl_sig <- function(d) if (!length(d)) "" else paste0(names(d), unlist(d), collapse = "")
+  decl_sig <- function(d) {
+    if (!length(d)) "" else paste0(names(d), unlist(d), collapse = "")
+  }
   row_sig <- vapply(row_decl, decl_sig, character(1L))
   col_sig <- vapply(col_decl, decl_sig, character(1L))
 
@@ -720,7 +741,9 @@ wb_add_html <- function(wb, x, sheet = current_sheet(), dims = "A1", which = 1L,
   }
 
   theme <- list(font = base_font, size = base_size, color = NULL, base_px = base_px,
-                resolver = function(tag, classes) css_for(rules, tag, classes, NA_character_))
+                resolver = function(tag, classes) {
+                  css_for(rules, tag, classes, NA_character_)
+                })
   foot_row <- row0 + g$nrow
   for (node in sibling_blocks("following")) {
     if (write_block(node, foot_row)) foot_row <- foot_row + 1L

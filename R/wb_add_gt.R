@@ -184,7 +184,11 @@ gtxlsx_write_body <- function(cc, g, th, p, numeric = TRUE) {
     j <- p$col_of(v)
     txt <- as.character(body[[v]])
     is_stub <- v %in% p$stub_vars
-    align <- if (is_stub) "left" else css_align(boxh$column_align[match(v, boxh$var)], "right")
+    align <- if (is_stub) {
+      "left"
+    } else {
+      css_align(boxh$column_align[match(v, boxh$var)], "right")
+    }
     size <- if (is_stub) th$stub_size else th$size
     bold <- if (is_stub) is_bold(th$stub_weight) else FALSE
     fg_col <- if (is_stub) th$stub_color else th$color
@@ -340,11 +344,12 @@ gtxlsx_heading_marks <- function(cc, g, th, p, cols) {
 # have displayed instead.
 measure_col <- function(v, g, th, p) {
   boxh <- g$boxhead
-  parts <- numeric(0L)
+  acc <- new.env(parent = emptyenv())
+  acc$parts <- numeric(0L)
   add <- function(x, scale) {
     x <- html_strip(as.character(x))
     x <- unlist(strsplit(x[!is.na(x)], "\n", fixed = TRUE))
-    if (length(x)) parts <<- c(parts, nchar(x) * scale)
+    if (length(x)) acc$parts <- c(acc$parts, nchar(x) * scale)
   }
 
   if (!is.na(p$label_row)) {
@@ -356,8 +361,8 @@ measure_col <- function(v, g, th, p) {
     if (!is.null(s$df[[v]])) add(s$df[[v]], th$summary_size / 11)
     if (identical(v, p$stub_vars[1L])) add(s$df[["::rowname::"]], th$summary_size / 11)
   }
-  if (!length(parts)) return(NA_real_)
-  min(max(max(parts) + 2.6, 4), 80)
+  if (!length(acc$parts)) return(NA_real_)
+  min(max(max(acc$parts) + 2.6, 4), 80)
 }
 
 gtxlsx_col_widths <- function(wb, sheet, g, th, p, col_widths) {

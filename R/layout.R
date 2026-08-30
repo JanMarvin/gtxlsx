@@ -55,13 +55,14 @@ gtxlsx_plan <- function(g, th, row0, col0) {
   group_span <- data.frame(group_id = character(0L), label = character(0L),
                            row_start = integer(0L), row_end = integer(0L),
                            stringsAsFactors = FALSE)
-  summaries <- list()
+  acc <- new.env(parent = emptyenv())
+  acc$summaries <- list()
 
   add_summary <- function(key, kind, r_at) {
     sm <- g$summary[[key]]
     if (is.null(sm) || !nrow(sm)) return(r_at)
     rows <- r_at + seq_len(nrow(sm)) - 1L
-    summaries[[length(summaries) + 1L]] <<-
+    acc$summaries[[length(acc$summaries) + 1L]] <-
       list(key = key, kind = kind, df = sm, rows = rows)
     r_at + nrow(sm)
   }
@@ -127,7 +128,7 @@ gtxlsx_plan <- function(g, th, row0, col0) {
     spanners = spanners, n_levels = n_levels, level_row = level_row,
     title_row = title_row, subtitle_row = subtitle_row, label_row = label_row,
     body_row = body_row, group_head = group_head, group_span = group_span,
-    summaries = summaries, footnotes = fn, footnote_rows = footnote_rows,
+    summaries = acc$summaries, footnotes = fn, footnote_rows = footnote_rows,
     source_rows = source_rows
   )
 }

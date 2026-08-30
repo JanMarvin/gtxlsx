@@ -44,7 +44,8 @@ test_that("tfoot is written last whatever its place in the source", {
 })
 
 test_that("a nested table does not leak rows into its parent", {
-  html <- "<table><tr><td>outer</td><td><table><tr><td>inner</td></tr></table></td></tr></table>"
+  html <- paste0("<table><tr><td>outer</td>",
+                 "<td><table><tr><td>inner</td></tr></table></td></tr></table>")
   wb <- openxlsx2::wb_workbook()$add_worksheet()
   wb <- wb_add_html(wb, html, dims = "A1")
   expect_equal(nrow(openxlsx2::wb_to_df(wb, col_names = FALSE)), 1L)
@@ -167,7 +168,8 @@ test_that("lt input is validated", {
 test_that("colgroup widths and legacy font tags are read", {
   html <- paste0("<table><colgroup><col style=\"width:200px\">",
                  "<col span=\"2\" width=\"80\"></colgroup>",
-                 "<tr><td><font color=\"red\">a</font></td><td>b</td><td>c</td></tr></table>")
+                 "<tr><td><font color=\"red\">a</font></td>",
+                 "<td>b</td><td>c</td></tr></table>")
   wb <- openxlsx2::wb_workbook()$add_worksheet()
   wb <- wb_add_html(wb, html, dims = "A1")
   expect_true(length(wb$worksheets[[1L]]$cols_attr) > 0L)
@@ -199,7 +201,8 @@ test_that("borders from shorthand and per side rules are drawn", {
   wb <- wb_add_html(wb, html, dims = "A1")
   st <- wb$styles_mgr$styles
   cc <- wb$worksheets[[1L]]$sheet_data$cc
-  xf <- openxlsx2::xml_attr(st$cellXfs[[as.integer(cc$c_s[cc$r == "A1"]) + 1L]], "xf")[[1L]]
+  id <- as.integer(cc$c_s[cc$r == "A1"]) + 1L
+  xf <- openxlsx2::xml_attr(st$cellXfs[[id]], "xf")[[1L]]
   bd <- st$borders[[as.integer(xf[["borderId"]]) + 1L]]
   expect_match(bd, "mediumDashed")
   expect_match(bd, "FF808080")

@@ -60,8 +60,16 @@ style_targets <- function(row, g, p) {
   switch(
     loc,
     title = if (is.na(p$title_row)) NULL else list(rows = p$title_row, cols = cols_all),
-    subtitle = if (is.na(p$subtitle_row)) NULL else list(rows = p$subtitle_row, cols = cols_all),
-    stubhead = if (is.na(p$label_row)) NULL else list(rows = p$label_row, cols = stub_col),
+    subtitle = if (is.na(p$subtitle_row)) {
+      NULL
+    } else {
+      list(rows = p$subtitle_row, cols = cols_all)
+    },
+    stubhead = if (is.na(p$label_row)) {
+      NULL
+    } else {
+      list(rows = p$label_row, cols = stub_col)
+    },
     columns_columns = {
       j <- col_of_name(row$colname)
       if (is.null(j) || is.na(p$label_row)) NULL else list(rows = p$label_row, cols = j)

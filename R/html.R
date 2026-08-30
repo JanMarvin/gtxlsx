@@ -78,7 +78,6 @@ html_runs <- function(text, base_px = 16, resolver = NULL) {
   st <- list(bold = FALSE, italic = FALSE, underline = FALSE, strike = FALSE,
              vert_align = NULL, size = NULL, color = NULL, font = NULL)
   stack <- list()
-  runs <- list()
   void <- c("br", "hr", "img", "wbr", "input", "col", "meta", "link")
 
   m <- gregexpr("<[^>]*>", text, perl = TRUE)[[1]]
@@ -89,8 +88,10 @@ html_runs <- function(text, base_px = 16, resolver = NULL) {
     lens <- integer(0L)
   }
 
+  acc <- new.env(parent = emptyenv())
+  acc$runs <- list()
   push <- function(s) {
-    if (nzchar(s)) runs[[length(runs) + 1L]] <<- c(list(text = s), st)
+    if (nzchar(s)) acc$runs[[length(acc$runs) + 1L]] <- c(list(text = s), st)
   }
 
   pos <- 1L
@@ -150,6 +151,7 @@ html_runs <- function(text, base_px = 16, resolver = NULL) {
     if (!is.na(sty)) st <- apply_css(st, parse_css_decls(sty), base_px)
   }
   if (pos <= nchar(text)) push(html_unescape(substring(text, pos)))
+  runs <- acc$runs
   # wrappers such as <p> around a cell's content leave a stray break at either
   # end; drop those rather than pad every cell with a blank line
   while (length(runs) && identical(runs[[1L]]$text, "\n")) runs <- runs[-1L]

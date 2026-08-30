@@ -207,7 +207,8 @@ render_cells <- function(wb, sheet, cc, theme) {
         sheet = sheet, dims = paste0(refs[part], collapse = ","),
         name = fld(r, "font") %||% theme$font,
         size = as.character(fld(r, "size") %||% theme$size),
-        color = wbc(fld(r, "color") %||% theme$color) %||% openxlsx2::wb_color(hex = "FF000000"),
+        color = wbc(fld(r, "color") %||% theme$color) %||%
+          openxlsx2::wb_color(hex = "FF000000"),
         bold = if (isTRUE(fld(r, "bold"))) "1" else "",
         italic = if (isTRUE(fld(r, "italic"))) "1" else "",
         underline = if (isTRUE(fld(r, "underline"))) "single" else "",
@@ -237,7 +238,11 @@ render_cells <- function(wb, sheet, cc, theme) {
       wrapText = if (isTRUE(r$wrap)) "1" else NULL,
       wrap_text = if (isTRUE(r$wrap)) "1" else NULL,
       indent = if (is.null(fld(r, "indent"))) NULL else as.character(fld(r, "indent")),
-      text_rotation = if (is.null(fld(r, "rotation"))) NULL else as.character(fld(r, "rotation"))
+      text_rotation = if (is.null(fld(r, "rotation"))) {
+        NULL
+      } else {
+        as.character(fld(r, "rotation"))
+      }
     )
     args <- known_args(openxlsx2::wb_add_cell_style, args)
     args <- args[!vapply(args, is.null, logical(1L))]

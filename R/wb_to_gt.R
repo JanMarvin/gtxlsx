@@ -53,7 +53,8 @@ xf_style <- function(wb, id) {
       fx <- st$fonts[[fid + 1L]]
       out$bold <- length(openxlsx2::xml_node(fx, "font", "b")) > 0L
       out$italic <- length(openxlsx2::xml_node(fx, "font", "i")) > 0L
-      out$color <- hex_to_css(attr_get(xml_attr1(fx, "font", "color"), "rgb") %||% NA_character_)
+      fc <- attr_get(xml_attr1(fx, "font", "color"), "rgb")
+      out$color <- hex_to_css(fc %||% NA_character_)
       sz <- attr_get(xml_attr1(fx, "font", "sz"), "val")
       if (!is.null(sz)) out$size <- paste0(sz, "pt")
       out$font <- attr_get(xml_attr1(fx, "font", "name"), "val")
@@ -188,7 +189,11 @@ wb_to_gt <- function(wb, sheet = current_sheet(), dims = NULL, styles = TRUE,
   body_rows <- if (i <= j) sheet_rows[i:j] else integer(0L)
 
   body <- raw[match(body_rows, sheet_rows), , drop = FALSE]
-  nms <- if (is.na(label_row)) names(raw) else as.character(raw[match(label_row, sheet_rows), ])
+  nms <- if (is.na(label_row)) {
+    names(raw)
+  } else {
+    as.character(raw[match(label_row, sheet_rows), ])
+  }
   bad <- is.na(nms) | !nzchar(trimws(nms))
   nms[bad] <- names(raw)[bad]
   names(body) <- make.unique(nms)
@@ -241,7 +246,8 @@ wb_to_gt <- function(wb, sheet = current_sheet(), dims = NULL, styles = TRUE,
       if (length(ct)) sl <- c(sl, list(do.call(gt::cell_text, ct)))
       if (!length(sl)) next
       out <- gt::tab_style(out, style = sl,
-                           locations = gt::cells_body(columns = names(body)[jj], rows = ii))
+                           locations = gt::cells_body(columns = names(body)[jj],
+                                                      rows = ii))
     }
   }
   out
