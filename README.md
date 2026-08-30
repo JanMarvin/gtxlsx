@@ -1,5 +1,12 @@
 # gtxlsx
 
+<!-- badges: start -->
+[![R-CMD-check](https://github.com/JanMarvin/gtxlsx/actions/workflows/check-standard.yaml/badge.svg)](https://github.com/JanMarvin/gtxlsx/actions/workflows/check-standard.yaml)
+[![codecov](https://codecov.io/gh/JanMarvin/gtxlsx/graph/badge.svg?token=JMMBBBHPTG)](https://app.codecov.io/gh/JanMarvin/gtxlsx)
+[![r-universe](https://janmarvin.r-universe.dev/badges/gtxlsx)](https://janmarvin.r-universe.dev/gtxlsx)
+
+<!-- badges: end -->
+
 Write **gt** tables — and plain HTML tables — into an **openxlsx2** workbook.
 
 `gt` renders beautiful tables for the web. `openxlsx2` writes real
@@ -21,9 +28,18 @@ users actually need. This would be in better hands with someone who works with
 
 ## Installation
 
+You can install development versions via r-universe:
 ```r
-# install.packages("pak")
-pak::pak("JanMarvin/gtxlsx")
+install.packages(
+  "gtxlsx",
+  repos = c("https://janmarvin.r-universe.dev", "https://cloud.r-project.org")
+)
+```
+
+Or from GitHub directly:
+
+```r
+remotes::install_github("JanMarvin/xlsx")
 ```
 
 ## A gt table
