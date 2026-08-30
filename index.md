@@ -25,10 +25,21 @@ over.
 
 ## Installation
 
+You can install development versions via r-universe:
+
 ``` r
 
-# install.packages("pak")
-pak::pak("JanMarvin/gtxlsx")
+install.packages(
+  "gtxlsx",
+  repos = c("https://janmarvin.r-universe.dev", "https://cloud.r-project.org")
+)
+```
+
+Or from GitHub directly:
+
+``` r
+
+remotes::install_github("JanMarvin/xlsx")
 ```
 
 ## A gt table

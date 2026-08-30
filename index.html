@@ -48,6 +48,9 @@
   <main id="main" class="col-md-9"><div class="section level1">
 <div class="page-header"><h1 id="gtxlsx">gtxlsx<a class="anchor" aria-label="anchor" href="#gtxlsx"></a>
 </h1></div>
+<!-- badges: start -->
+
+<!-- badges: end -->
 <p>Write <strong>gt</strong> tables — and plain HTML tables — into an <strong>openxlsx2</strong> workbook.</p>
 <p><code>gt</code> renders beautiful tables for the web. <code>openxlsx2</code> writes real spreadsheets. <code>gtxlsx</code> is the bit in between: it takes the table you already built and lays it out as cells, keeping the heading, the column spanners, the row groups, the stub, the summary rows, the footnotes and the styling you set with <code><a href="https://gt.rstudio.com/reference/tab_style.html" class="external-link">tab_style()</a></code> and <code><a href="https://gt.rstudio.com/reference/tab_options.html" class="external-link">tab_options()</a></code>.</p>
 <p>Numbers stay numbers. If gt shows <code>$1,234.50</code>, the cell holds <code>1234.5</code> with the number format <code>"$"#,##0.00</code> attached, so the sheet is still something you can compute with.</p>
@@ -59,14 +62,20 @@
 <div class="section level2">
 <h2 id="installation">Installation<a class="anchor" aria-label="anchor" href="#installation"></a>
 </h2>
+<p>You can install development versions via r-universe:</p>
 <div class="sourceCode" id="cb1"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="co"># install.packages("pak")</span></span>
-<span><span class="fu">pak</span><span class="fu">::</span><span class="fu"><a href="https://pak.r-lib.org/reference/pak.html" class="external-link">pak</a></span><span class="op">(</span><span class="st">"JanMarvin/gtxlsx"</span><span class="op">)</span></span></code></pre></div>
+<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/utils/install.packages.html" class="external-link">install.packages</a></span><span class="op">(</span></span>
+<span>  <span class="st">"gtxlsx"</span>,</span>
+<span>  repos <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"https://janmarvin.r-universe.dev"</span>, <span class="st">"https://cloud.r-project.org"</span><span class="op">)</span></span>
+<span><span class="op">)</span></span></code></pre></div>
+<p>Or from GitHub directly:</p>
+<div class="sourceCode" id="cb2"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu">remotes</span><span class="fu">::</span><span class="fu">install_github</span><span class="op">(</span><span class="st">"JanMarvin/xlsx"</span><span class="op">)</span></span></code></pre></div>
 </div>
 <div class="section level2">
 <h2 id="a-gt-table">A gt table<a class="anchor" aria-label="anchor" href="#a-gt-table"></a>
 </h2>
-<div class="sourceCode" id="cb2"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://gt.rstudio.com" class="external-link">gt</a></span><span class="op">)</span></span>
 <span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://janmarvin.github.io/openxlsx2/" class="external-link">openxlsx2</a></span><span class="op">)</span></span>
 <span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://github.com/JanMarvin/gtxlsx" class="external-link">gtxlsx</a></span><span class="op">)</span></span>
@@ -89,7 +98,7 @@
 <h2 id="an-html-table">An HTML table<a class="anchor" aria-label="anchor" href="#an-html-table"></a>
 </h2>
 <p>Anything that produces an HTML <code>&lt;table&gt;</code> can go the same way. Inline <code>&lt;style&gt;</code> rules and <code>style=</code> attributes are read, <code>colspan</code> and <code>rowspan</code> become merged ranges, and markup inside a cell becomes rich text.</p>
-<div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://janmarvin.github.io/openxlsx2/" class="external-link">openxlsx2</a></span><span class="op">)</span></span>
 <span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://github.com/JanMarvin/gtxlsx" class="external-link">gtxlsx</a></span><span class="op">)</span></span>
 <span></span>
@@ -152,7 +161,14 @@
 </ul>
 </div>
 
-
+<div class="dev-status">
+<h2 data-toc-skip>Dev status</h2>
+<ul class="list-unstyled">
+<li><a href="https://github.com/JanMarvin/gtxlsx/actions/workflows/check-standard.yaml" class="external-link"><img src="https://github.com/JanMarvin/gtxlsx/actions/workflows/check-standard.yaml/badge.svg" alt="R-CMD-check"></a></li>
+<li><a href="https://app.codecov.io/gh/JanMarvin/gtxlsx" class="external-link"><img src="https://codecov.io/gh/JanMarvin/gtxlsx/graph/badge.svg?token=JMMBBBHPTG" alt="codecov"></a></li>
+<li><a href="https://janmarvin.r-universe.dev/gtxlsx" class="external-link"><img src="https://janmarvin.r-universe.dev/badges/gtxlsx" alt="r-universe"></a></li>
+</ul>
+</div>
 
   </aside>
 </div>
