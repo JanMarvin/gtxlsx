@@ -1,0 +1,31 @@
+Package: gtxlsx
+Type: Package
+Title: Write 'gt' and HTML Tables into 'openxlsx2' Workbooks
+Version: 0.1.0
+Authors@R: c(
+    person("Jan Marvin", "Garbuszus", email = "jan.garbuszus@ruhr-uni-bochum.de",
+           role = c("aut", "cre")))
+Description: Turns a 'gt' table into a range of cells in an 'openxlsx2'
+    workbook, keeping the heading, column spanners, row groups, stub,
+    summary rows, footnotes and the styling set through 'gt'. Numbers stay
+    numbers wherever an Excel number format can reproduce what 'gt' shows.
+    A second entry point does the same for a plain HTML table, so output
+    from other table packages can be written to a worksheet as well.
+License: MIT + file LICENSE
+URL: https://github.com/JanMarvin/gtxlsx
+BugReports: https://github.com/JanMarvin/gtxlsx/issues
+Encoding: UTF-8
+Depends:
+    R (>= 4.1.0)
+Imports:
+    grDevices,
+    gt (>= 0.10.0),
+    markdown,
+    openxlsx2 (>= 1.0),
+    utils,
+    xml2
+Suggests:
+    lt,
+    testthat (>= 3.0.0)
+Config/testthat/edition: 3
+Config/roxygen2/version: 8.1.0

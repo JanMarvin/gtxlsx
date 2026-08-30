@@ -1,0 +1,51 @@
+test_that("colours are parsed from every notation", {
+  expect_equal(css_hex("#1a2b3c"), "FF1A2B3C")
+  expect_equal(css_hex("#abc"), "FFAABBCC")
+  expect_equal(css_hex("rgb(1, 2, 3)"), "FF010203")
+  expect_equal(css_hex("rgba(1,2,3,0.5)"), "80010203")
+  expect_equal(css_hex("hsl(0, 100%, 50%)"), "FFFF0000")
+  expect_null(css_hex("transparent"))
+  expect_null(css_hex("not-a-colour"))
+})
+
+test_that("CSS colour names win over the X11 names R knows", {
+  expect_equal(css_hex("green"), "FF008000")
+  expect_equal(css_hex("purple"), "FF800080")
+  expect_equal(css_hex("rebeccapurple"), "FF663399")
+  expect_equal(css_hex("lightblue"), "FFADD8E6")
+})
+
+test_that("lengths convert to points and pixels", {
+  expect_equal(css_pt("16px"), 12)
+  expect_equal(css_pt("12pt"), 12)
+  expect_equal(css_pt("125%", base = 16), 15)
+  expect_equal(css_pt("2em", base = 16), 24)
+  expect_equal(css_px("1in"), 96)
+  expect_true(is.na(css_px("wobble")))
+  expect_null(css_pt(NA))
+})
+
+test_that("border styles map onto Excel names", {
+  expect_equal(css_border("solid", "1px"), "thin")
+  expect_equal(css_border("solid", "2px"), "medium")
+  expect_equal(css_border("solid", "3px"), "thick")
+  expect_equal(css_border("dashed", "2px"), "mediumDashed")
+  expect_equal(css_border("double"), "double")
+  expect_equal(css_border("none"), "none")
+  expect_null(css_border(NA))
+})
+
+test_that("alignment, declarations and helpers", {
+  expect_equal(css_align("center"), "center")
+  expect_equal(css_valign("middle"), "center")
+  expect_equal(css_align("bogus", "left"), "left")
+  d <- parse_css_decls("color: red; font-weight: bold !important")
+  expect_equal(d[["color"]], "red")
+  expect_equal(attr(d, "important"), "font-weight")
+  expect_equal(parse_css_decls(NA), list())
+  expect_equal(apply_transform("ab", "uppercase"), "AB")
+  expect_equal(apply_transform("AB", "lowercase"), "ab")
+  expect_equal(css_rotation("rotate(-90deg)"), 90L)
+  expect_null(css_rotation("scale(2)"))
+  expect_equal(luminance("FFFFFFFF"), 255)
+})
