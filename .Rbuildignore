@@ -5,3 +5,6 @@
 ^README\.md$
 ^\.lintr$
 ^\.Rbuildignore$
+^_pkgdown\.yml$
+^docs$
+^pkgdown$
