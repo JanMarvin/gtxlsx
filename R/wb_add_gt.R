@@ -250,7 +250,7 @@ gtxlsx_write_body <- function(cc, g, th, p, numeric = TRUE) {
     for (i in seq_len(nrow(p$group_head))) {
       lbl <- p$group_head$label[i]
       put_cell(cc, p$group_head$row[i], cols[1L], lbl, rich = is_rich(lbl),
-               size = th$group_size, bold = is_bold(th$group_weight, TRUE),
+               size = th$group_size, bold = is_bold(th$group_weight),
                font = th$font, color = th$group_color, halign = "left",
                fill = th$group_fill)
       for (k in cols[-1L]) {
@@ -264,7 +264,7 @@ gtxlsx_write_body <- function(cc, g, th, p, numeric = TRUE) {
     for (i in seq_len(nrow(p$group_span))) {
       lbl <- p$group_span$label[i]
       put_cell(cc, p$group_span$row_start[i], j, lbl, rich = is_rich(lbl),
-               size = th$group_size, bold = is_bold(th$group_weight, TRUE),
+               size = th$group_size, bold = is_bold(th$group_weight),
                font = th$font, color = th$group_color, halign = "left",
                valign = "top", fill = th$group_fill)
       add_merge(cc, seq.int(p$group_span$row_start[i], p$group_span$row_end[i]), j)
@@ -283,8 +283,8 @@ gtxlsx_write_summaries <- function(cc, g, th, p) {
     stub_col <- if (length(p$stub_vars)) p$col_of(p$stub_vars[1L]) else p$col0
     for (i in seq_along(s$rows)) {
       put_cell(cc, s$rows[i], stub_col, labels[i], rich = is_rich(labels[i]),
-               size = th$summary_size, font = th$font, bold = TRUE,
-               color = fg_col, halign = "left", fill = fill_col)
+               size = th$summary_size, font = th$font, color = fg_col,
+               halign = "left", fill = fill_col)
       for (v in p$body_vars) {
         if (is.null(df[[v]])) {
           put_cell(cc, s$rows[i], p$col_of(v), fill = fill_col, size = th$summary_size)

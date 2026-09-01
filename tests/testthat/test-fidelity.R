@@ -139,3 +139,42 @@ test_that("a per row style does not leak into other rows", {
   expect_equal(sheet_style(wb, "A2")$fill, "-")
   expect_equal(sheet_style(wb, "B2")$fill, "FFFFCCCC")
 })
+
+test_that("weights follow the gt option rather than being forced", {
+  skip_no_gt()
+  d <- data.frame(g = c("A", "A", "B"), k = paste0("r", 1:3), v = c(1, 2, 3),
+                  stringsAsFactors = FALSE)
+  tbl <- gt::gt(d, rowname_col = "k", groupname_col = "g")
+  tbl <- gt::summary_rows(tbl, columns = "v", fns = list(tot = ~ sum(.x)))
+
+  wb <- openxlsx2::wb_workbook()$add_worksheet()
+  wb <- wb_add_gt(wb, tbl, dims = "A1")
+  # row_group.font.weight and the summary rows default to "initial", not bold
+  expect_false(sheet_style(wb, "A2")$bold)
+  expect_false(sheet_style(wb, "A5")$bold)
+
+  bold <- gt::tab_options(tbl, row_group.font.weight = "bold")
+  wb2 <- openxlsx2::wb_workbook()$add_worksheet()
+  wb2 <- wb_add_gt(wb2, bold, dims = "A1")
+  expect_true(sheet_style(wb2, "A2")$bold)
+})
+
+test_that("spanners carry the column label bottom border", {
+  skip_no_gt()
+  d <- data.frame(k = c("a", "b"), q1 = c(1, 2), q2 = c(3, 4),
+                  stringsAsFactors = FALSE)
+  tbl <- gt::tab_spanner(gt::gt(d, rowname_col = "k"), label = "2024",
+                         columns = c("q1", "q2"))
+
+  wb <- openxlsx2::wb_workbook()$add_worksheet()
+  wb <- wb_add_gt(wb, tbl, dims = "B2")
+
+  st <- wb$styles_mgr$styles
+  cc <- wb$worksheets[[1L]]$sheet_data$cc
+  for (ref in c("C4", "D4")) {
+    id <- as.integer(cc$c_s[cc$r == ref]) + 1L
+    xf <- openxlsx2::xml_attr(st$cellXfs[[id]], "xf")[[1L]]
+    bd <- st$borders[[as.integer(xf[["borderId"]]) + 1L]]
+    expect_match(bd, "<bottom style=", fixed = TRUE, info = ref)
+  }
+})

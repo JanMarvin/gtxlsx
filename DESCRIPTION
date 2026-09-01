@@ -1,7 +1,7 @@
 Package: gtxlsx
 Type: Package
 Title: Write 'gt' and HTML Tables into 'openxlsx2' Workbooks
-Version: 0.1.0
+Version: 0.1.1
 Authors@R: c(
     person("Jan Marvin", "Garbuszus", email = "jan.garbuszus@ruhr-uni-bochum.de",
            role = c("aut", "cre")))

@@ -250,6 +250,17 @@ gtxlsx_borders <- function(wb, sheet, cc, g, th, p, cols) {
                 ob("column_labels_border_top"), oc("column_labels_border_top"))
     side_border(wb, sheet, rng(p$label_row), "bottom",
                 ob("column_labels_border_bottom"), oc("column_labels_border_bottom"))
+    # gt gives every spanner the same bottom border as the column labels
+    sp <- p$spanners
+    if (!is.null(sp) && nrow(sp)) {
+      for (i in seq_len(nrow(sp))) {
+        j <- sort(p$col_of(sp$vars[[i]]))
+        row <- p$level_row[[as.character(sp$spanner_level[i])]]
+        side_border(wb, sheet, rng(row, j), "bottom",
+                    ob("column_labels_border_bottom"),
+                    oc("column_labels_border_bottom"))
+      }
+    }
   }
 
   if (length(head_rows)) {
