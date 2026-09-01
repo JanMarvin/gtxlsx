@@ -18,6 +18,16 @@
 #' `gt::fmt_icon()` and `gt::fmt_flag()` fall back to their label text, and
 #' `gt::fmt_url()` keeps the link text but not the hyperlink.
 #'
+#' @section Row striping:
+#' A striped table gets a fill on every body row, the striping colour on one
+#' and `table.background.color` on the next. Excel leaves an unfilled cell
+#' transparent, so filling only half the rows would show the banding as
+#' detached blocks rather than a continuous column.
+#'
+#' The colour comes from gt, and gt's default is white. On a worksheet with a
+#' coloured background that white will cover the tint under the table. Set
+#' `table.background.color` to match, or turn striping off, if that matters.
+#'
 #' @section Numbers versus text:
 #' With `numeric = TRUE` a column is written as numbers whenever an Excel
 #' number format can reproduce exactly what gt displays. `$1,234.50` becomes
@@ -37,6 +47,13 @@
 #' @param col_widths `"auto"` measures the rendered text and sizes the columns
 #'   to fit it, a numeric vector sets the widths directly, and `NULL` leaves
 #'   them alone. Widths set with `gt::cols_width()` always win.
+#' @param row_heights `NULL`, the default, leaves Excel to size the rows.
+#'   `"gt"` sets each row from the padding gt would have used around it, and a
+#'   numeric vector sets the heights directly. Either of those also centres the
+#'   text vertically, because Excel aligns to the bottom of a cell while gt
+#'   pads above and below equally; without that the extra height would all
+#'   appear as space above the text. Rows holding wrapped text keep Excel's own
+#'   sizing, since a fixed height would clip them.
 #' @param ignore_errors Mark text cells whose content looks like a number or a
 #'   date, so Excel stops showing the green warning triangle on them.
 #' @param ... Currently unused.
@@ -62,7 +79,7 @@
 #'
 #' @export
 wb_add_gt <- function(wb, x, sheet = current_sheet(), dims = "A1",
-                      numeric = TRUE, col_widths = "auto",
+                      numeric = TRUE, col_widths = "auto", row_heights = NULL,
                       ignore_errors = TRUE, ...) {
   if (!inherits(wb, "wbWorkbook")) {
     stop("`wb` must be a 'wbWorkbook' object", call. = FALSE)
@@ -87,9 +104,11 @@ wb_add_gt <- function(wb, x, sheet = current_sheet(), dims = "A1",
   gtxlsx_write_notes(cc, g, th, p, cols)
   gtxlsx_apply_styles(cc, g, th, p)
 
+  if (!is.null(row_heights)) th$valign <- "center"
   flagged <- render_cells(wb, sheet, cc, th)
   gtxlsx_borders(wb, sheet, cc, g, th, p, cols)
   gtxlsx_col_widths(wb, sheet, g, th, p, col_widths)
+  gtxlsx_row_heights(wb, sheet, cc, th, p, row_heights)
 
   if (isTRUE(ignore_errors)) {
     for (rng in flagged) {
@@ -220,7 +239,16 @@ gtxlsx_write_body <- function(cc, g, th, p, numeric = TRUE) {
     for (i in seq_len(nrow(body))) {
       row <- p$body_row[i]
       if (is.na(row)) next
-      fill <- if (stripe_on && i %% 2L == 0L) stripe else fill_col
+      # a striped table needs the plain rows filled too: leaving them
+      # transparent makes the banding read as detached blocks rather than a
+      # continuous column
+      fill <- if (stripe_on && i %% 2L == 0L) {
+        stripe
+      } else if (stripe_on) {
+        fill_col %||% th$bg
+      } else {
+        fill_col
+      }
       indent <- if (!is.null(indents) && !is.na(indents[i]) && indents[i] != 0L) {
         indents[i]
       } else {
@@ -392,5 +420,51 @@ gtxlsx_col_widths <- function(wb, sheet, g, th, p, col_widths) {
   if (any(sel)) {
     wb$set_col_widths(sheet = sheet, cols = cols[sel], widths = round(widths[sel], 2))
   }
+  invisible(NULL)
+}
+
+
+# gt spaces its rows with padding above and below the text; Excel sizes rows in
+# points, so the same look comes from the font size plus that padding.
+row_height_pt <- function(size_pt, pad_px) {
+  if (is.na(pad_px)) pad_px <- 0
+  round(size_pt * 1.3 + 2 * pad_px * 0.75, 1)
+}
+
+gtxlsx_row_heights <- function(wb, sheet, cc, th, p, row_heights) {
+  if (is.null(row_heights)) return(invisible(NULL))
+  rows <- seq.int(p$row0, p$last_row)
+
+  if (is.numeric(row_heights)) {
+    wb$set_row_heights(sheet = sheet, rows = rows,
+                       heights = rep_len(row_heights, length(rows)))
+    return(invisible(NULL))
+  }
+
+  h <- rep(NA_real_, length(rows))
+  put <- function(at, value) {
+    at <- at[!is.na(at)]
+    if (length(at)) h[match(at, rows)] <<- value
+  }
+
+  put(c(p$title_row, p$subtitle_row), row_height_pt(th$title_size, th$pad_heading))
+  put(c(p$level_row, p$label_row), row_height_pt(th$label_size, th$pad_label))
+  put(p$body_row, row_height_pt(th$size, th$pad_row))
+  put(p$group_head$row, row_height_pt(th$group_size, th$pad_group))
+  for (s in p$summaries) {
+    pad <- if (identical(s$kind, "grand_summary")) th$pad_gsummary else th$pad_summary
+    put(s$rows, row_height_pt(th$summary_size, pad))
+  }
+  put(p$footnote_rows, row_height_pt(th$footnote_size, th$pad_footnote))
+  put(p$source_rows, row_height_pt(th$source_size, th$pad_source))
+
+  # a fixed height clips wrapped text, so those rows keep Excel's own sizing
+  wrapped <- unique(vapply(collect_cells(cc), function(r) {
+    if (isTRUE(r$wrap) || isTRUE(r$style$wrap)) as.numeric(r$row) else NA_real_
+  }, numeric(1L)))
+  h[rows %in% wrapped] <- NA_real_
+
+  sel <- !is.na(h)
+  if (any(sel)) wb$set_row_heights(sheet = sheet, rows = rows[sel], heights = h[sel])
   invisible(NULL)
 }

@@ -178,3 +178,24 @@ test_that("spanners carry the column label bottom border", {
     expect_match(bd, "<bottom style=", fixed = TRUE, info = ref)
   }
 })
+
+test_that("striping fills the plain rows too, so the banding is continuous", {
+  skip_no_gt()
+  d <- data.frame(k = paste0("r", 1:4), v = 1:4, stringsAsFactors = FALSE)
+  tbl <- gt::opt_row_striping(gt::gt(d, rowname_col = "k"))
+
+  wb <- openxlsx2::wb_workbook()$add_worksheet()
+  wb <- wb_add_gt(wb, tbl, dims = "A1")
+
+  fills <- vapply(c("B2", "B3", "B4", "B5"),
+                  function(r) sheet_style(wb, r)$fill, character(1L))
+  expect_false(any(fills == "-"))
+  expect_equal(length(unique(fills)), 2L)
+})
+
+test_that("without striping the body is left unfilled", {
+  skip_no_gt()
+  wb <- openxlsx2::wb_workbook()$add_worksheet()
+  wb <- wb_add_gt(wb, small_gt(), dims = "A1")
+  expect_equal(sheet_style(wb, "B2")$fill, "-")
+})

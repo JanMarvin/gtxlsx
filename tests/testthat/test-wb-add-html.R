@@ -219,3 +219,39 @@ test_that("a table without rows is refused", {
   wb <- openxlsx2::wb_workbook()$add_worksheet()
   expect_error(wb_add_html(wb, "<table><caption>c</caption></table>"), "no rows")
 })
+
+test_that("a border on many rows lands on every one of them", {
+  # openxlsx2 treats a range as a block, so a bottom border applied to A2:A4 at
+  # once would only reach A4
+  rows <- paste0("<tr><td>a", 1:4, "</td><td>b", 1:4, "</td></tr>", collapse = "")
+  html <- paste0("<style>td{border-bottom:1px solid #888}</style><table>",
+                 rows, "</table>")
+  wb <- openxlsx2::wb_workbook()$add_worksheet()
+  wb <- wb_add_html(wb, html, dims = "A1")
+
+  st <- wb$styles_mgr$styles
+  cc <- wb$worksheets[[1L]]$sheet_data$cc
+  for (ref in c("A1", "A2", "A3", "A4", "B1", "B4")) {
+    id <- as.integer(cc$c_s[cc$r == ref]) + 1L
+    xf <- openxlsx2::xml_attr(st$cellXfs[[id]], "xf")[[1L]]
+    bd <- st$borders[[as.integer(xf[["borderId"]]) + 1L]]
+    expect_match(bd, "<bottom style=", fixed = TRUE, info = ref)
+  }
+})
+
+test_that("a left border on many rows lands on every one of them", {
+  rows <- paste0("<tr><td>a", 1:3, "</td></tr>", collapse = "")
+  html <- paste0("<style>td{border-left:1px solid #888}</style><table>",
+                 rows, "</table>")
+  wb <- openxlsx2::wb_workbook()$add_worksheet()
+  wb <- wb_add_html(wb, html, dims = "A1")
+
+  st <- wb$styles_mgr$styles
+  cc <- wb$worksheets[[1L]]$sheet_data$cc
+  for (ref in c("A1", "A2", "A3")) {
+    id <- as.integer(cc$c_s[cc$r == ref]) + 1L
+    xf <- openxlsx2::xml_attr(st$cellXfs[[id]], "xf")[[1L]]
+    bd <- st$borders[[as.integer(xf[["borderId"]]) + 1L]]
+    expect_match(bd, "<left style=", fixed = TRUE, info = ref)
+  }
+})

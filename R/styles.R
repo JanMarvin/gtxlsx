@@ -197,7 +197,11 @@ apply_borders <- function(wb, sheet, borders) {
   }))
   for (k in split(seq_along(sig), sig)) {
     parts <- strsplit(sig[k[1L]], "\r", fixed = TRUE)[[1L]]
-    for (rng in ref_runs(rows[k], cols[k])) {
+    # openxlsx2 treats a range as a block, so a bottom border on A4:A5 lands on
+    # A5 only. Runs therefore go across a row for top and bottom borders, and
+    # down a column for left and right.
+    along <- if (parts[1L] %in% c("top", "bottom")) "row" else "col"
+    for (rng in ref_runs(rows[k], cols[k], along)) {
       side_border(wb, sheet, rng, parts[1L], parts[2L],
                   if (nzchar(parts[3L])) parts[3L] else NULL)
     }
@@ -250,6 +254,19 @@ gtxlsx_borders <- function(wb, sheet, cc, g, th, p, cols) {
                 ob("column_labels_border_top"), oc("column_labels_border_top"))
     side_border(wb, sheet, rng(p$label_row), "bottom",
                 ob("column_labels_border_bottom"), oc("column_labels_border_bottom"))
+    # gt puts column_labels.vlines on every heading cell, outer edges included
+    vl <- ob("column_labels_vlines")
+    if (!is.null(vl) && !identical(vl, "none")) {
+      vc <- wbc(oc("column_labels_vlines"))
+      wb$add_border(
+        sheet = sheet, dims = rng(p$label_row), update = TRUE,
+        top_border = NULL, top_color = NULL,
+        bottom_border = NULL, bottom_color = NULL,
+        left_border = vl, left_color = vc,
+        right_border = vl, right_color = vc,
+        inner_vgrid = vl, inner_vcolor = vc
+      )
+    }
     # gt gives every spanner the same bottom border as the column labels
     sp <- p$spanners
     if (!is.null(sp) && nrow(sp)) {

@@ -39,6 +39,34 @@ join_sel <- function(parent, child) {
   else paste(parent, child)
 }
 
+# A rule's own declarations are everything outside its nested blocks. Nesting
+# goes deeper than a regex can follow, so the braces are matched by hand and
+# each nested selector (the text after the last ";") is dropped with its block.
+own_decls <- function(txt) {
+  out <- ""
+  i <- 1L
+  n <- nchar(txt)
+  while (i <= n) {
+    ch <- substr(txt, i, i)
+    if (ch == "{") {
+      out <- sub("[^;]*$", "", out)
+      depth <- 1L
+      j <- i + 1L
+      while (j <= n && depth > 0L) {
+        cj <- substr(txt, j, j)
+        if (cj == "{") depth <- depth + 1L
+        if (cj == "}") depth <- depth - 1L
+        j <- j + 1L
+      }
+      i <- j
+      next
+    }
+    out <- paste0(out, ch)
+    i <- i + 1L
+  }
+  out
+}
+
 walk_css <- function(txt, parent = "", acc = list()) {
   i <- 1L
   n <- nchar(txt)
@@ -55,7 +83,9 @@ walk_css <- function(txt, parent = "", acc = list()) {
         j <- j + 1L
       }
       block <- substr(txt, i + 1L, j - 2L)
-      prelude <- trimws(buf)
+      # declarations that precede a nested rule end in ";" and must not be
+      # taken for part of that rule's selector
+      prelude <- trimws(sub("^.*;", "", buf))
       buf <- ""
       i <- j
       if (grepl("^@", prelude)) {
@@ -65,8 +95,7 @@ walk_css <- function(txt, parent = "", acc = list()) {
       sels <- unlist(lapply(split_top(prelude), function(s) {
         unlist(lapply(expand_is(s), function(e) join_sel(parent, e)))
       }))
-      own <- gsub("[^{}]*\\{(?:[^{}]|\\{[^{}]*\\})*\\}", "", block, perl = TRUE)
-      decl <- parse_css_decls(own)
+      decl <- parse_css_decls(own_decls(block))
       if (length(decl)) {
         for (sel in sels) acc[[length(acc) + 1L]] <- list(sel = sel, decl = decl)
       }
@@ -84,6 +113,54 @@ walk_css <- function(txt, parent = "", acc = list()) {
   acc
 }
 
+# Only the positional pseudo-classes can be judged from a table's structure;
+# anything else (state, :has(), ::before) is still dropped rather than guessed.
+pos_pseudos <- function(component) {
+  pat <- paste0(":(not\\(:?)?(first-child|last-child|only-child|",
+                "nth-child\\([^()]*\\))\\)?")
+  hits <- regmatches(component, gregexpr(pat, component, perl = TRUE))[[1]]
+  lapply(hits, function(h) {
+    neg <- grepl(":not(", h, fixed = TRUE)
+    body <- sub("^:(not\\(:?)?", "", sub("\\)$", "", h))
+    if (grepl("^nth-child", body)) {
+      list(kind = "nth", arg = tolower(sub("^nth-child\\(([^()]*)\\).*$", "\\1", body)),
+           negate = neg)
+    } else {
+      list(kind = sub("\\).*$", "", body), negate = neg)
+    }
+  })
+}
+
+unsupported_pseudo <- function(sel) {
+  pat <- paste0(":(not\\(:?)?(first-child|last-child|only-child|",
+                "nth-child\\([^()]*\\))\\)?")
+  cleaned <- gsub(pat, "", sel, perl = TRUE)
+  grepl("::|:[a-z]", cleaned, perl = TRUE)
+}
+
+pos_ok <- function(cons, i, n) {
+  if (!length(cons)) return(TRUE)
+  if (is.na(i) || is.na(n)) return(FALSE)
+  for (c0 in cons) {
+    ok <- switch(c0$kind,
+                 "first-child" = i == 1L,
+                 "last-child" = i == n,
+                 "only-child" = n == 1L,
+                 "nth" = if (identical(c0$arg, "even")) {
+                   i %% 2L == 0L
+                 } else if (identical(c0$arg, "odd")) {
+                   i %% 2L == 1L
+                 } else {
+                   k <- suppressWarnings(as.integer(c0$arg))
+                   !is.na(k) && i == k
+                 },
+                 TRUE)
+    if (isTRUE(c0$negate)) ok <- !ok
+    if (!ok) return(FALSE)
+  }
+  TRUE
+}
+
 parse_stylesheet <- function(doc) {
   css <- paste(xml2::xml_text(xml_find(doc, "//style")), collapse = "\n")
   if (!nzchar(css)) return(NULL)
@@ -97,9 +174,7 @@ parse_stylesheet <- function(doc) {
     sel <- trimws(flat[[i]]$sel)
     # structural and state pseudo-classes are not evaluated here; applying such
     # a rule to every cell is worse than skipping it, so it is dropped
-    skip <- paste0("::|:(nth-|first-|last-|only-|not\\(|has\\(|where\\(|hover|",
-                   "focus|active|target|empty|checked|visited|link|disabled)")
-    if (grepl(skip, sel, perl = TRUE)) next
+    if (unsupported_pseudo(sel)) next
     parts <- strsplit(sel, "[ >+~]+")[[1]]
     parts <- parts[nzchar(parts)]
     if (!length(parts)) next
@@ -119,6 +194,8 @@ parse_stylesheet <- function(doc) {
       classes = cls,
       id = if (length(id)) id else NA_character_,
       ancestors = anc,
+      own_pos = pos_pseudos(last),
+      anc_pos = unlist(lapply(up, pos_pseudos), recursive = FALSE),
       rank = length(cls) * 10L + length(anc) + (length(id) > 0L) * 100L,
       order = i,
       decl = flat[[i]]$decl
@@ -127,9 +204,15 @@ parse_stylesheet <- function(doc) {
   out
 }
 
-css_for <- function(rules, tag, classes, id, ancestors = character(0L)) {
+css_for <- function(rules, tag, classes, id, ancestors = character(0L),
+                    pos = NULL) {
   if (!length(rules)) return(list())
   keep <- vapply(rules, function(r) {
+    if (length(r$own_pos) || length(r$anc_pos)) {
+      if (is.null(pos)) return(FALSE)
+      if (!pos_ok(r$own_pos, pos$cell_i, pos$cell_n)) return(FALSE)
+      if (!pos_ok(r$anc_pos, pos$row_i, pos$row_n)) return(FALSE)
+    }
     (is.na(r$tag) || identical(r$tag, tag)) &&
       (!length(r$classes) || all(r$classes %in% classes)) &&
       (is.na(r$id) || identical(r$id, id)) &&
@@ -154,6 +237,35 @@ css_for <- function(rules, tag, classes, id, ancestors = character(0L)) {
 }
 
 # ---- declarations -> cell record --------------------------------------------
+
+# CSS custom properties: --bd: 1.5px solid #888 then border-top: var(--bd).
+# Values are substituted before anything tries to read them.
+resolve_vars <- function(decl, vars) {
+  need <- vapply(decl, function(v) grepl("var(", v, fixed = TRUE), logical(1L))
+  if (!any(need)) return(decl)
+  pat <- "var\\(\\s*--[A-Za-z0-9_-]+\\s*(,[^()]*)?\\)"
+  for (k in names(decl)[need]) {
+    v <- decl[[k]]
+    for (i in seq_len(4L)) {
+      m <- regmatches(v, regexpr(pat, v))
+      if (!length(m)) break
+      nm <- sub("^var\\(\\s*(--[A-Za-z0-9_-]+).*$", "\\1", m)
+      rep <- vars[[nm]]
+      if (is.null(rep)) {
+        fb <- sub("\\)$", "", sub("^var\\([^,]*,\\s*", "", m))
+        rep <- if (identical(fb, m)) "" else fb
+      }
+      v <- sub(m, rep, v, fixed = TRUE)
+    }
+    decl[[k]] <- trimws(v)
+  }
+  decl
+}
+
+css_var_defs <- function(decl) {
+  if (!length(decl)) return(list())
+  decl[startsWith(names(decl) %||% character(0L), "--")]
+}
 
 decl_to_rec <- function(decl, base_px) {
   out <- list()
@@ -198,8 +310,10 @@ decl_to_rec <- function(decl, base_px) {
     for (side in c("top", "bottom", "left", "right")) {
       b <- css_border(long(side, "style"), long(side, "width"), base = base_px)
       if (is.null(b) || identical(b, "none")) next
-      borders[[side]] <- list(border = b,
-                              color = css_color(long(side, "color")) %||% "FF000000")
+      col <- long(side, "color")
+      # a transparent border is a spacer in CSS and nothing at all in a sheet
+      if (!is.null(col) && tolower(trimws(col)) %in% c("transparent", "none")) next
+      borders[[side]] <- list(border = b, color = css_color(col) %||% "FF000000")
     }
   }
   out$borders <- if (length(borders)) borders else NULL
@@ -290,7 +404,10 @@ html_grid <- function(tbl) {
       if (nc > length(cells)) length(cells) <- 2L * length(cells)
       cells[[nc]] <- list(
         node = node, row = i, col = j, rowspan = min(rs, n - i + 1L), colspan = cs,
-        tag = tolower(xml2::xml_name(node)), tr = rows[[i]]
+        tag = tolower(xml2::xml_name(node)), tr = rows[[i]],
+        cell_i = k, cell_n = length(kids),
+        row_i = i - min(which(sec == sec[i])) + 1L,
+        row_n = sum(sec == sec[i])
       )
       j <- j + cs
     }
@@ -320,12 +437,12 @@ pres_decls <- function(node) {
   d
 }
 
-node_decls <- function(node, rules, ancestors = NULL) {
+node_decls <- function(node, rules, ancestors = NULL, pos = NULL) {
   if (!length(node)) return(list())
   if (is.null(ancestors)) ancestors <- node_ancestors(node)
   d <- css_for(rules, tolower(xml2::xml_name(node)),
                strsplit(xml2::xml_attr(node, "class") %||% "", "\\s+")[[1]],
-               xml2::xml_attr(node, "id"), ancestors)
+               xml2::xml_attr(node, "id"), ancestors, pos)
   p <- pres_decls(node)
   d[names(p)] <- p
   inline <- parse_css_decls(xml2::xml_attr(node, "style"))
@@ -482,6 +599,7 @@ wb_add_html <- function(wb, x, sheet = current_sheet(), dims = "A1", which = 1L,
 
   # crude inheritance: the properties CSS actually inherits, taken from the
   # table rule and used as the starting point for every cell
+  root_vars <- css_var_defs(root)
   inherited <- root[intersect(names(root),
                               c("color", "font-family", "font-size", "font-weight",
                                 "font-style", "text-align", "white-space"))]
@@ -655,8 +773,14 @@ wb_add_html <- function(wb, x, sheet = current_sheet(), dims = "A1", which = 1L,
     cls <- xml2::xml_attr(node, "class")
     sty <- xml2::xml_attr(node, "style")
     nkid <- xml2::xml_length(node, only_elements = TRUE)
+    pos <- list(cell_i = cell$cell_i, cell_n = cell$cell_n,
+                row_i = cell$row_i, row_n = cell$row_n)
+    # only the answers the pseudo-classes can give belong in the key
+    pkey <- paste(pos$cell_i == 1L, pos$cell_i == pos$cell_n, pos$cell_i %% 2L,
+                  pos$row_i == 1L, pos$row_i == pos$row_n, pos$row_i %% 2L,
+                  pos$cell_i, pos$row_i, sep = ",")
     ckey <- paste(cell$tag, cls, sty, nkid, row_anc_sig(cell),
-                  row_sig[cell$row], col_sig[cell$col], sep = "\r")
+                  row_sig[cell$row], col_sig[cell$col], pkey, sep = "\r")
     rec <- rec_cache[[ckey]]
 
     if (is.null(rec)) {
@@ -677,7 +801,7 @@ wb_add_html <- function(wb, x, sheet = current_sheet(), dims = "A1", which = 1L,
         kid <- xml2::xml_children(inner)[[1L]]
         if (!tolower(xml2::xml_name(kid)) %in% c("p", "div", "span")) break
         inner <- kid
-        w <- node_decls(inner, rules, anc)
+        w <- node_decls(inner, rules, anc, pos)
         # a wrapper routinely declares background-color:transparent, which must
         # not wipe the background the cell itself sets
         w <- w[!vapply(w, function(v) {
@@ -688,9 +812,11 @@ wb_add_html <- function(wb, x, sheet = current_sheet(), dims = "A1", which = 1L,
       }
 
       for (extra in list(inherited, table_border, col_decl[[cell$col]],
-                         row_decl[[cell$row]], node_decls(node, rules, anc), wrap)) {
+                         row_decl[[cell$row]], node_decls(node, rules, anc, pos),
+                         wrap)) {
         if (length(extra)) decl[names(extra)] <- extra
       }
+      decl <- resolve_vars(decl, c(root_vars, css_var_defs(decl)))
       rec <- decl_to_rec(decl, base_px)
       rec$sig <- ckey
       rec_cache[[ckey]] <- rec
@@ -747,6 +873,26 @@ wb_add_html <- function(wb, x, sheet = current_sheet(), dims = "A1", which = 1L,
   foot_row <- row0 + g$nrow
   for (node in sibling_blocks("following")) {
     if (write_block(node, foot_row)) foot_row <- foot_row + 1L
+  }
+
+  # a border on the <table> itself frames the block rather than any one cell
+  troot <- decl_to_rec(resolve_vars(root, root_vars), base_px)
+  if (length(troot$borders)) {
+    r0 <- row0 - cap_rows
+    r1 <- row0 + g$nrow - 1L
+    c0 <- col0
+    c1 <- col0 + g$ncol - 1L
+    for (side in names(troot$borders)) {
+      b <- troot$borders[[side]]
+      rows_j <- switch(side,
+                       top = list(r0, seq.int(c0, c1)),
+                       bottom = list(r1, seq.int(c0, c1)),
+                       left = list(seq.int(r0, r1), c0),
+                       right = list(seq.int(r0, r1), c1))
+      cc$borders[[length(cc$borders) + 1L]] <-
+        list(rows = rows_j[[1L]], cols = rows_j[[2L]], side = side,
+             border = b$border, color = b$color)
+    }
   }
 
   flagged <- render_cells(wb, sheet, cc, theme)

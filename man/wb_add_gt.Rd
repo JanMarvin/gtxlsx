@@ -11,6 +11,7 @@ wb_add_gt(
   dims = "A1",
   numeric = TRUE,
   col_widths = "auto",
+  row_heights = NULL,
   ignore_errors = TRUE,
   ...
 )
@@ -31,6 +32,14 @@ reproduced. Set to `FALSE` to write every cell as text.}
 \item{col_widths}{`"auto"` measures the rendered text and sizes the columns
 to fit it, a numeric vector sets the widths directly, and `NULL` leaves
 them alone. Widths set with `gt::cols_width()` always win.}
+
+\item{row_heights}{`NULL`, the default, leaves Excel to size the rows.
+`"gt"` sets each row from the padding gt would have used around it, and a
+numeric vector sets the heights directly. Either of those also centres the
+text vertically, because Excel aligns to the bottom of a cell while gt
+pads above and below equally; without that the extra height would all
+appear as space above the text. Rows holding wrapped text keep Excel's own
+sizing, since a fixed height would clip them.}
 
 \item{ignore_errors}{Mark text cells whose content looks like a number or a
 date, so Excel stops showing the green warning triangle on them.}
@@ -61,6 +70,18 @@ Anything gt draws as a picture cannot be written to a cell.
 `gt::fmt_icon()` and `gt::fmt_flag()` fall back to their label text, and
 `gt::fmt_url()` keeps the link text but not the hyperlink.
 }
+\section{Row striping}{
+
+A striped table gets a fill on every body row, the striping colour on one
+and `table.background.color` on the next. Excel leaves an unfilled cell
+transparent, so filling only half the rows would show the banding as
+detached blocks rather than a continuous column.
+
+The colour comes from gt, and gt's default is white. On a worksheet with a
+coloured background that white will cover the tint under the table. Set
+`table.background.color` to match, or turn striping off, if that matters.
+}
+
 \section{Numbers versus text}{
 
 With `numeric = TRUE` a column is written as numbers whenever an Excel

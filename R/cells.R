@@ -60,8 +60,21 @@ ref_of <- function(rows, cols) paste0(openxlsx2::int2col(cols), rows)
 # dims string is not usable here: openxlsx2 expands it with
 # dims_to_dataframe(fill = TRUE), which pads the bounding box with empty
 # entries and those end up as attribute-less <ignoredError/> nodes.
-ref_runs <- function(rows, cols) {
+ref_runs <- function(rows, cols, along = c("col", "row")) {
   if (!length(rows)) return(character(0L))
+  along <- match.arg(along)
+  if (identical(along, "row")) {
+    ord <- order(rows, cols)
+    rows <- rows[ord]
+    cols <- cols[ord]
+    brk <- c(TRUE, diff(cols) != 1L | diff(rows) != 0L)
+    grp <- cumsum(brk)
+    return(vapply(split(seq_along(rows), grp), function(i) {
+      fst <- ref_of(rows[i][1L], cols[i][1L])
+      lst <- ref_of(rows[i][1L], cols[i][length(i)])
+      if (identical(fst, lst)) fst else paste0(fst, ":", lst)
+    }, character(1L), USE.NAMES = FALSE))
+  }
   ord <- order(cols, rows)
   rows <- rows[ord]
   cols <- cols[ord]
@@ -234,7 +247,7 @@ render_cells <- function(wb, sheet, cc, theme) {
           is.null(fld(r, "indent")) && is.null(fld(r, "rotation"))) next
     args <- list(
       horizontal = fld(r, "halign"),
-      vertical = fld(r, "valign") %||% "bottom",
+      vertical = fld(r, "valign") %||% theme$valign %||% "bottom",
       wrapText = if (isTRUE(r$wrap)) "1" else NULL,
       wrap_text = if (isTRUE(r$wrap)) "1" else NULL,
       indent = if (is.null(fld(r, "indent"))) NULL else as.character(fld(r, "indent")),
