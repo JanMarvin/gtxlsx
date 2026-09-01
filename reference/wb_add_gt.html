@@ -13,7 +13,7 @@ block starting at `dims`."></head><body>
 
     <a class="navbar-brand me-2" href="../index.html">gtxlsx</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.1.0</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.2.0</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -34,7 +34,7 @@ block starting at `dims`."></head><body>
   <main id="main" class="col-md-9"><div class="page-header">
 
       <h1>Write a gt table into a worksheet</h1>
-      <small class="dont-index">Source: <a href="https://github.com/JanMarvin/gtxlsx/blob/v0.1.0/R/wb_add_gt.R" class="external-link"><code>R/wb_add_gt.R</code></a></small>
+      <small class="dont-index">Source: <a href="https://github.com/JanMarvin/gtxlsx/blob/v0.2.0/R/wb_add_gt.R" class="external-link"><code>R/wb_add_gt.R</code></a></small>
       <div class="d-none name"><code>wb_add_gt.Rd</code></div>
     </div>
 
@@ -54,6 +54,7 @@ block starting at `dims`.</p>
 <span>  dims <span class="op">=</span> <span class="st">"A1"</span>,</span>
 <span>  numeric <span class="op">=</span> <span class="cn">TRUE</span>,</span>
 <span>  col_widths <span class="op">=</span> <span class="st">"auto"</span>,</span>
+<span>  row_heights <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  ignore_errors <span class="op">=</span> <span class="cn">TRUE</span>,</span>
 <span>  <span class="va">...</span></span>
 <span><span class="op">)</span></span></code></pre></div>
@@ -91,6 +92,16 @@ to fit it, a numeric vector sets the widths directly, and `NULL` leaves
 them alone. Widths set with `gt::cols_width()` always win.</p></dd>
 
 
+<dt id="arg-row-heights">row_heights<a class="anchor" aria-label="anchor" href="#arg-row-heights"></a></dt>
+<dd><p>`NULL`, the default, leaves Excel to size the rows.
+`"gt"` sets each row from the padding gt would have used around it, and a
+numeric vector sets the heights directly. Either of those also centres the
+text vertically, because Excel aligns to the bottom of a cell while gt
+pads above and below equally; without that the extra height would all
+appear as space above the text. Rows holding wrapped text keep Excel's own
+sizing, since a fixed height would clip them.</p></dd>
+
+
 <dt id="arg-ignore-errors">ignore_errors<a class="anchor" aria-label="anchor" href="#arg-ignore-errors"></a></dt>
 <dd><p>Mark text cells whose content looks like a number or a
 date, so Excel stops showing the green warning triangle on them.</p></dd>
@@ -118,6 +129,18 @@ italic, superscripts, line breaks) becomes rich text.</p>
 `gt::fmt_image()` and `gt::cols_nanoplot()` leave the cell empty,
 `gt::fmt_icon()` and `gt::fmt_flag()` fall back to their label text, and
 `gt::fmt_url()` keeps the link text but not the hyperlink.</p>
+    </div>
+    <div class="section level2">
+    <h2 id="row-striping">Row striping<a class="anchor" aria-label="anchor" href="#row-striping"></a></h2>
+
+
+<p>A striped table gets a fill on every body row, the striping colour on one
+and `table.background.color` on the next. Excel leaves an unfilled cell
+transparent, so filling only half the rows would show the banding as
+detached blocks rather than a continuous column.</p>
+<p>The colour comes from gt, and gt's default is white. On a worksheet with a
+coloured background that white will cover the tint under the table. Set
+`table.background.color` to match, or turn striping off, if that matters.</p>
     </div>
     <div class="section level2">
     <h2 id="numbers-versus-text">Numbers versus text<a class="anchor" aria-label="anchor" href="#numbers-versus-text"></a></h2>
