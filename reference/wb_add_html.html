@@ -15,7 +15,7 @@ beside the table rather than inside it are picked up as well."></head><body>
 
     <a class="navbar-brand me-2" href="../index.html">gtxlsx</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.2.0</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.3.0</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -24,6 +24,7 @@ beside the table rather than inside it are picked up as well."></head><body>
 
     <div id="navbar" class="collapse navbar-collapse ms-3">
       <ul class="navbar-nav me-auto"><li class="active nav-item"><a class="nav-link" href="../reference/index.html">Reference</a></li>
+<li class="nav-item"><a class="nav-link" href="../news/index.html">Changelog</a></li>
       </ul><ul class="navbar-nav"><li class="nav-item"><form class="form-inline" role="search">
  <input class="form-control" type="search" name="search-input" id="search-input" autocomplete="off" aria-label="Search site" placeholder="Search for" data-search-index="../search.json"></form></li>
 <li class="nav-item"><a class="external-link nav-link" href="https://github.com/JanMarvin/gtxlsx/" aria-label="GitHub"><span class="fa fab fa-github fa-lg"></span></a></li>
@@ -36,7 +37,7 @@ beside the table rather than inside it are picked up as well."></head><body>
   <main id="main" class="col-md-9"><div class="page-header">
 
       <h1>Write an HTML table into a worksheet</h1>
-      <small class="dont-index">Source: <a href="https://github.com/JanMarvin/gtxlsx/blob/v0.2.0/R/html_table.R" class="external-link"><code>R/html_table.R</code></a></small>
+      <small class="dont-index">Source: <a href="https://github.com/JanMarvin/gtxlsx/blob/main/R/html_table.R" class="external-link"><code>R/html_table.R</code></a></small>
       <div class="d-none name"><code>wb_add_html.Rd</code></div>
     </div>
 
@@ -107,9 +108,9 @@ flag them.</p></dd>
 
 
 <dt id="arg-context">context<a class="anchor" aria-label="anchor" href="#arg-context"></a></dt>
-<dd><p>Pick up block elements sitting beside the table — headings
-above it, notes below it — and write them as merged rows. Set to `FALSE`
-to write the table on its own.</p></dd>
+<dd><p>Pick up block elements sitting beside the table, such as a
+heading above it or a note below, and write them as merged rows. Set to
+`FALSE` to write the table on its own.</p></dd>
 
 
 <dt id="arg--">...<a class="anchor" aria-label="anchor" href="#arg--"></a></dt>
@@ -123,23 +124,27 @@ to write the table on its own.</p></dd>
     <div class="section level2">
     <h2 id="details">Details<a class="anchor" aria-label="anchor" href="#details"></a></h2>
     <p>This is the general path for tables that are already HTML, whatever
-produced them. Old fashioned presentational markup is understood too:
-`bgcolor`, `align`, `valign`, `width`, `nowrap` and `&lt;table border&gt;`.</p>
+produced them. `openxlsx2` is the only thing it needs; `gt` is a suggestion
+and nothing on this path uses it.</p>
+<p>Old fashioned presentational markup is understood too: `bgcolor`, `align`,
+`valign`, `width`, `nowrap` and `&lt;table border&gt;`.</p>
     </div>
     <div class="section level2">
     <h2 id="how-much-css-is-understood">How much CSS is understood<a class="anchor" aria-label="anchor" href="#how-much-css-is-understood"></a></h2>
 
 
-<p>Enough for tables, not enough to call it a browser. Selectors are matched
-on their rightmost part — tag, class and id — with the classes of ancestor
-elements checked as well, which is what makes rules like
-`table.report td.total` and `thead td` work. Nested rules, `:is()` and `!important` are
-handled. What is not: `:nth-child()` and other structural or state
-pseudo-classes are skipped rather than applied to every cell, `&gt;` and `+`
-behave like a plain descendant combinator, attribute selectors match on the
-tag alone, and stylesheets pulled in with `&lt;link&gt;` are not fetched.</p>
-<p>Properties with no spreadsheet equivalent — gradients, letter spacing,
-rounded corners — are dropped. `&lt;img&gt;` and `&lt;svg&gt;` leave an empty cell, and
+<p>Enough for tables, not enough to call it a browser. A selector is matched
+by walking its components against the cell and the elements above it, so
+`table.report td.total`, `thead td` and `div &gt; td` all mean what they say.
+Nested rules, `:is()`, custom properties and `!important` are handled, as
+are the positional pseudo-classes `:first-child`, `:last-child`,
+`:only-child` and `:nth-child()`.</p>
+<p>What is not: sibling combinators (`+`, `~`), state pseudo-classes and
+`::before` cause a rule to be skipped rather than guessed at, attribute
+selectors match on the tag alone, `@media` conditions are ignored, and
+stylesheets pulled in with `&lt;link&gt;` are not fetched.</p>
+<p>Properties with no spreadsheet equivalent, such as gradients, letter
+spacing and rounded corners, are dropped. `&lt;img&gt;` and `&lt;svg&gt;` leave an empty cell, and
 `&lt;a href&gt;` keeps its text but not the link.</p>
     </div>
     <div class="section level2">

@@ -13,7 +13,7 @@ block starting at `dims`."></head><body>
 
     <a class="navbar-brand me-2" href="../index.html">gtxlsx</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.2.0</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.3.0</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -22,6 +22,7 @@ block starting at `dims`."></head><body>
 
     <div id="navbar" class="collapse navbar-collapse ms-3">
       <ul class="navbar-nav me-auto"><li class="active nav-item"><a class="nav-link" href="../reference/index.html">Reference</a></li>
+<li class="nav-item"><a class="nav-link" href="../news/index.html">Changelog</a></li>
       </ul><ul class="navbar-nav"><li class="nav-item"><form class="form-inline" role="search">
  <input class="form-control" type="search" name="search-input" id="search-input" autocomplete="off" aria-label="Search site" placeholder="Search for" data-search-index="../search.json"></form></li>
 <li class="nav-item"><a class="external-link nav-link" href="https://github.com/JanMarvin/gtxlsx/" aria-label="GitHub"><span class="fa fab fa-github fa-lg"></span></a></li>
@@ -34,7 +35,7 @@ block starting at `dims`."></head><body>
   <main id="main" class="col-md-9"><div class="page-header">
 
       <h1>Write a gt table into a worksheet</h1>
-      <small class="dont-index">Source: <a href="https://github.com/JanMarvin/gtxlsx/blob/v0.2.0/R/wb_add_gt.R" class="external-link"><code>R/wb_add_gt.R</code></a></small>
+      <small class="dont-index">Source: <a href="https://github.com/JanMarvin/gtxlsx/blob/main/R/wb_add_gt.R" class="external-link"><code>R/wb_add_gt.R</code></a></small>
       <div class="d-none name"><code>wb_add_gt.Rd</code></div>
     </div>
 
@@ -56,6 +57,7 @@ block starting at `dims`.</p>
 <span>  col_widths <span class="op">=</span> <span class="st">"auto"</span>,</span>
 <span>  row_heights <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  ignore_errors <span class="op">=</span> <span class="cn">TRUE</span>,</span>
+<span>  gap <span class="op">=</span> <span class="fl">1L</span>,</span>
 <span>  <span class="va">...</span></span>
 <span><span class="op">)</span></span></code></pre></div>
     </div>
@@ -69,7 +71,9 @@ block starting at `dims`.</p>
 
 
 <dt id="arg-x">x<a class="anchor" aria-label="anchor" href="#arg-x"></a></dt>
-<dd><p>A `gt_tbl` object.</p></dd>
+<dd><p>A `gt_tbl` object, or a `gt_group` as returned by
+[gt::gt_group()] or [gt::gt_split()]. A group is written one table after
+another down the sheet.</p></dd>
 
 
 <dt id="arg-sheet">sheet<a class="anchor" aria-label="anchor" href="#arg-sheet"></a></dt>
@@ -94,17 +98,20 @@ them alone. Widths set with `gt::cols_width()` always win.</p></dd>
 
 <dt id="arg-row-heights">row_heights<a class="anchor" aria-label="anchor" href="#arg-row-heights"></a></dt>
 <dd><p>`NULL`, the default, leaves Excel to size the rows.
-`"gt"` sets each row from the padding gt would have used around it, and a
-numeric vector sets the heights directly. Either of those also centres the
-text vertically, because Excel aligns to the bottom of a cell while gt
-pads above and below equally; without that the extra height would all
-appear as space above the text. Rows holding wrapped text keep Excel's own
-sizing, since a fixed height would clip them.</p></dd>
+`"gt"` sets each row from the padding gt would have used, and a numeric
+vector sets the heights directly. Both also centre the text vertically,
+since Excel aligns to the bottom of a cell and gt pads evenly. Rows with
+wrapped text keep Excel's sizing, which a fixed height would clip.</p></dd>
 
 
 <dt id="arg-ignore-errors">ignore_errors<a class="anchor" aria-label="anchor" href="#arg-ignore-errors"></a></dt>
 <dd><p>Mark text cells whose content looks like a number or a
 date, so Excel stops showing the green warning triangle on them.</p></dd>
+
+
+<dt id="arg-gap">gap<a class="anchor" aria-label="anchor" href="#arg-gap"></a></dt>
+<dd><p>Blank rows left between the tables of a `gt_group`. Ignored for
+a single table.</p></dd>
 
 
 <dt id="arg--">...<a class="anchor" aria-label="anchor" href="#arg--"></a></dt>
@@ -178,7 +185,6 @@ indicator.</p>
 <span class="r-out co"><span class="r-pr">#&gt;</span> 3    item amount</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> 4    Cash 1204.5</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> 5    Debt  -3910</span>
-<span class="r-in"><span></span></span>
 </code></pre></div>
     </div>
   </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>

@@ -55,9 +55,9 @@ A \`gt_tbl\` object.
 
 This function is a development toy, not a finished feature. It exists
 because the reverse direction was interesting to try, and it has had
-only light testing — a handful of sheets, no round trip guarantees.
-Treat its output as a starting point you will edit, not as a faithful
-copy, and expect the details to change or the function to be withdrawn.
+only light testing: a handful of sheets, no round trip guarantees. Treat
+its output as a starting point you will edit, not as a faithful copy,
+and expect the details to change or the function to be withdrawn.
 
 A worksheet simply does not record most of what a \`gt\` table knows.
 Row groups, the stub, footnote marks and number formats do not come

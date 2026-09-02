@@ -5,7 +5,8 @@ keeping the heading, column spanners, row groups, stub, summary rows,
 footnotes and the styling set through 'gt'. Numbers stay numbers
 wherever an Excel number format can reproduce what 'gt' shows. A second
 entry point does the same for a plain HTML table, so output from other
-table packages can be written to a worksheet as well.
+table packages can be written to a worksheet as well; that path needs
+nothing beyond 'openxlsx2'.
 
 ## See also
 

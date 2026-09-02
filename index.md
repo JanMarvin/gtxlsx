@@ -15,6 +15,10 @@ Numbers stay numbers. If gt shows `$1,234.50`, the cell holds `1234.5`
 with the number format `"$"#,##0.00` attached, so the sheet is still
 something you can compute with.
 
+`gt` is a suggestion rather than a dependency. If all you want is
+[`wb_add_html()`](reference/wb_add_html.md), `openxlsx2` is the only
+thing you need.
+
 ## Maintenance
 
 I am probably the wrong person to be building this. I do not use `gt`

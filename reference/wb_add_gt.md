@@ -17,6 +17,7 @@ wb_add_gt(
   col_widths = "auto",
   row_heights = NULL,
   ignore_errors = TRUE,
+  gap = 1L,
   ...
 )
 ```
@@ -29,7 +30,9 @@ wb_add_gt(
 
 - x:
 
-  A \`gt_tbl\` object.
+  A \`gt_tbl\` object, or a \`gt_group\` as returned by
+  \[gt::gt_group()\] or \[gt::gt_split()\]. A group is written one table
+  after another down the sheet.
 
 - sheet:
 
@@ -54,17 +57,20 @@ wb_add_gt(
 - row_heights:
 
   \`NULL\`, the default, leaves Excel to size the rows. \`"gt"\` sets
-  each row from the padding gt would have used around it, and a numeric
-  vector sets the heights directly. Either of those also centres the
-  text vertically, because Excel aligns to the bottom of a cell while gt
-  pads above and below equally; without that the extra height would all
-  appear as space above the text. Rows holding wrapped text keep Excel's
-  own sizing, since a fixed height would clip them.
+  each row from the padding gt would have used, and a numeric vector
+  sets the heights directly. Both also centre the text vertically, since
+  Excel aligns to the bottom of a cell and gt pads evenly. Rows with
+  wrapped text keep Excel's sizing, which a fixed height would clip.
 
 - ignore_errors:
 
   Mark text cells whose content looks like a number or a date, so Excel
   stops showing the green warning triangle on them.
+
+- gap:
+
+  Blank rows left between the tables of a \`gt_group\`. Ignored for a
+  single table.
 
 - ...:
 
