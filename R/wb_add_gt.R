@@ -38,7 +38,9 @@
 #' indicator.
 #'
 #' @param wb A `wbWorkbook` object, as returned by [openxlsx2::wb_workbook()].
-#' @param x A `gt_tbl` object.
+#' @param x A `gt_tbl` object, or a `gt_group` as returned by
+#'   [gt::gt_group()] or [gt::gt_split()]. A group is written one table after
+#'   another down the sheet.
 #' @param sheet The worksheet to write to. Defaults to the current sheet.
 #' @param dims Cell reference of the top left corner of the table, for example
 #'   `"B2"`.
@@ -48,12 +50,12 @@
 #'   to fit it, a numeric vector sets the widths directly, and `NULL` leaves
 #'   them alone. Widths set with `gt::cols_width()` always win.
 #' @param row_heights `NULL`, the default, leaves Excel to size the rows.
-#'   `"gt"` sets each row from the padding gt would have used around it, and a
-#'   numeric vector sets the heights directly. Either of those also centres the
-#'   text vertically, because Excel aligns to the bottom of a cell while gt
-#'   pads above and below equally; without that the extra height would all
-#'   appear as space above the text. Rows holding wrapped text keep Excel's own
-#'   sizing, since a fixed height would clip them.
+#'   `"gt"` sets each row from the padding gt would have used, and a numeric
+#'   vector sets the heights directly. Both also centre the text vertically,
+#'   since Excel aligns to the bottom of a cell and gt pads evenly. Rows with
+#'   wrapped text keep Excel's sizing, which a fixed height would clip.
+#' @param gap Blank rows left between the tables of a `gt_group`. Ignored for
+#'   a single table.
 #' @param ignore_errors Mark text cells whose content looks like a number or a
 #'   date, so Excel stops showing the green warning triangle on them.
 #' @param ... Currently unused.
@@ -64,7 +66,7 @@
 #' @seealso [wb_add_html()] for tables that are already HTML, and
 #'   [gtxlsx_extract()] to see the pieces `wb_add_gt()` works from.
 #'
-#' @examples
+#' @examplesIf requireNamespace("gt", quietly = TRUE)
 #' library(gt)
 #' library(openxlsx2)
 #'
@@ -80,11 +82,15 @@
 #' @export
 wb_add_gt <- function(wb, x, sheet = current_sheet(), dims = "A1",
                       numeric = TRUE, col_widths = "auto", row_heights = NULL,
-                      ignore_errors = TRUE, ...) {
+                      ignore_errors = TRUE, gap = 1L, ...) {
   if (!inherits(wb, "wbWorkbook")) {
     stop("`wb` must be a 'wbWorkbook' object", call. = FALSE)
   }
   wb <- wb$clone()
+
+  if (inherits(x, "gt_group")) {
+    return(invisible(write_gt_group(wb, x, sheet, dims, gap, ...)))
+  }
 
   g <- gtxlsx_extract(x)
   th <- gtxlsx_theme(g$options)
@@ -122,6 +128,31 @@ wb_add_gt <- function(wb, x, sheet = current_sheet(), dims = "A1",
   }
 
   invisible(wb)
+}
+
+# A gt_group holds its tables as rows of a tibble; grp_pull() turns one back
+# into a gt_tbl. Each is measured before it is written so the next one knows
+# where to start.
+write_gt_group <- function(wb, x, sheet, dims, gap, ...) {
+  need_gt()
+  # gt keeps the tables as rows of a tibble; guard against that becoming a
+  # plain list so the count does not silently come back NULL
+  tbls <- x$gt_tbls
+  n <- if (is.data.frame(tbls)) nrow(tbls) else length(tbls)
+  if (!length(n) || is.na(n) || n < 1L) return(wb)
+  rc <- openxlsx2::dims_to_rowcol(dims, as_integer = TRUE)
+  row <- min(rc$row)
+  col <- min(rc$col)
+
+  for (i in seq_len(n)) {
+    tbl <- gt::grp_pull(x, which = i)
+    g <- gtxlsx_extract(tbl)
+    th <- gtxlsx_theme(g$options)
+    p <- gtxlsx_plan(g, th, row, col)
+    wb <- wb_add_gt(wb, tbl, sheet = sheet, dims = ref_of(row, col), ...)
+    row <- p$last_row + 1L + max(as.integer(gap), 0L)
+  }
+  wb
 }
 
 gtxlsx_write_heading <- function(cc, g, th, p, cols) {

@@ -81,8 +81,19 @@ css_regions <- function(tbl, dims = "A1") {
   wb <- wb_add_gt(wb, tbl, dims = dims)
 
   html <- suppressWarnings(as.character(gt::as_raw_html(tbl, inline_css = FALSE)))
-  doc <- xml2::read_html(html)
+  doc <- html_parse(html)
   rules <- parse_stylesheet(doc)
+
+  # resolve each region against the element gt actually rendered, so the
+  # ancestor chain the selectors need is the real one
+  # The class has to match as a whole token ("gt_footnote" must not pick up
+  # "gt_footnote_marks"), and the element type matters too: gt puts gt_row on
+  # the stub cell as well, so asking for a td keeps the two apart.
+  node_for <- function(cls, tag) {
+    hits <- nd_find_all(doc, tag)
+    for (i in hits) if (cls %in% nd_classes(doc, i)) return(i)
+    NULL
+  }
 
   body1 <- p$body_row[1L]
   spec <- list(
@@ -101,7 +112,9 @@ css_regions <- function(tbl, dims = "A1") {
   out <- list()
   for (s in spec) {
     if (length(s[[3L]]) != 1L || is.na(s[[3L]])) next
-    decl <- css_for(rules, s[[2L]], s[[1L]], NA_character_)
+    node <- node_for(s[[1L]], s[[2L]])
+    if (is.null(node)) next
+    decl <- node_decls(doc, node, rules)
     if (!length(decl)) next
     out[[s[[1L]]]] <- list(
       want = decl_to_rec(decl, th$base_px),

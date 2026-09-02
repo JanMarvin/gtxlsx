@@ -13,13 +13,16 @@ wb_add_gt(
   col_widths = "auto",
   row_heights = NULL,
   ignore_errors = TRUE,
+  gap = 1L,
   ...
 )
 }
 \arguments{
 \item{wb}{A `wbWorkbook` object, as returned by [openxlsx2::wb_workbook()].}
 
-\item{x}{A `gt_tbl` object.}
+\item{x}{A `gt_tbl` object, or a `gt_group` as returned by
+[gt::gt_group()] or [gt::gt_split()]. A group is written one table after
+another down the sheet.}
 
 \item{sheet}{The worksheet to write to. Defaults to the current sheet.}
 
@@ -34,15 +37,16 @@ to fit it, a numeric vector sets the widths directly, and `NULL` leaves
 them alone. Widths set with `gt::cols_width()` always win.}
 
 \item{row_heights}{`NULL`, the default, leaves Excel to size the rows.
-`"gt"` sets each row from the padding gt would have used around it, and a
-numeric vector sets the heights directly. Either of those also centres the
-text vertically, because Excel aligns to the bottom of a cell while gt
-pads above and below equally; without that the extra height would all
-appear as space above the text. Rows holding wrapped text keep Excel's own
-sizing, since a fixed height would clip them.}
+`"gt"` sets each row from the padding gt would have used, and a numeric
+vector sets the heights directly. Both also centre the text vertically,
+since Excel aligns to the bottom of a cell and gt pads evenly. Rows with
+wrapped text keep Excel's sizing, which a fixed height would clip.}
 
 \item{ignore_errors}{Mark text cells whose content looks like a number or a
 date, so Excel stops showing the green warning triangle on them.}
+
+\item{gap}{Blank rows left between the tables of a `gt_group`. Ignored for
+a single table.}
 
 \item{...}{Currently unused.}
 }
@@ -94,6 +98,7 @@ indicator.
 }
 
 \examples{
+\dontshow{if (requireNamespace("gt", quietly = TRUE)) withAutoprint(\{ # examplesIf}
 library(gt)
 library(openxlsx2)
 
@@ -105,7 +110,7 @@ wb <- wb_workbook()$add_worksheet()
 wb <- wb_add_gt(wb, tbl, dims = "B2")
 
 wb_to_df(wb, col_names = FALSE)
-
+\dontshow{\}) # examplesIf}
 }
 \seealso{
 [wb_add_html()] for tables that are already HTML, and

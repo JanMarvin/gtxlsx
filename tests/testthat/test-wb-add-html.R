@@ -90,7 +90,7 @@ test_that("important declarations win", {
 
 test_that("nested rules and :is() are resolved", {
   html <- paste0("<style>table{ .body :is(td,th){background-color:#00ff00} }</style>",
-                 "<table class=\"body\"><tr><td>x</td></tr></table>")
+                 "<table><tbody class=\"body\"><tr><td>x</td></tr></tbody></table>")
   wb <- openxlsx2::wb_workbook()$add_worksheet()
   wb <- wb_add_html(wb, html, dims = "A1")
   expect_equal(sheet_style(wb, "A1")$fill, "FF00FF00")
@@ -208,8 +208,8 @@ test_that("borders from shorthand and per side rules are drawn", {
   expect_match(bd, "FF808080")
 })
 
-test_that("an xml_document can be passed straight in", {
-  doc <- xml2::read_html("<table><tr><td>x</td></tr></table>")
+test_that("an already parsed document can be passed straight in", {
+  doc <- html_parse("<table><tr><td>x</td></tr></table>")
   wb <- openxlsx2::wb_workbook()$add_worksheet()
   wb <- wb_add_html(wb, doc, dims = "A1")
   expect_equal(openxlsx2::wb_to_df(wb, col_names = FALSE)[1L, 1L], "x")
@@ -254,4 +254,69 @@ test_that("a left border on many rows lands on every one of them", {
     bd <- st$borders[[as.integer(xf[["borderId"]]) + 1L]]
     expect_match(bd, "<left style=", fixed = TRUE, info = ref)
   }
+})
+
+test_that("a child combinator does not match a distant ancestor", {
+  # "div > td" must not reach a cell whose parent is a tr
+  html <- paste0("<style>div > td{background-color:#ff0000}",
+                 "tr > td{background-color:#00ff00}</style>",
+                 "<div><table><tr><td>x</td></tr></table></div>")
+  wb <- openxlsx2::wb_workbook()$add_worksheet()
+  wb <- wb_add_html(wb, html, dims = "A1")
+  expect_equal(sheet_style(wb, "A1")$fill, "FF00FF00")
+})
+
+test_that("a descendant combinator reaches through any depth", {
+  html <- paste0("<style>div td{background-color:#0000ff}</style>",
+                 "<div><table><tr><td>x</td></tr></table></div>")
+  wb <- openxlsx2::wb_workbook()$add_worksheet()
+  wb <- wb_add_html(wb, html, dims = "A1")
+  expect_equal(sheet_style(wb, "A1")$fill, "FF0000FF")
+})
+
+test_that("selector order is respected, not just membership", {
+  # "tfoot thead td" names real ancestors in an impossible order
+  html <- paste0("<style>tfoot thead td{background-color:#ff0000}</style>",
+                 "<table><thead><tr><td>h</td></tr></thead>",
+                 "<tfoot><tr><td>f</td></tr></tfoot></table>")
+  wb <- openxlsx2::wb_workbook()$add_worksheet()
+  wb <- wb_add_html(wb, html, dims = "A1")
+  expect_equal(sheet_style(wb, "A1")$fill, "-")
+  expect_equal(sheet_style(wb, "A2")$fill, "-")
+})
+
+test_that("sibling combinators are skipped rather than guessed", {
+  html <- paste0("<style>th + td{background-color:#ff0000}</style>",
+                 "<table><tr><th>h</th><td>v</td></tr></table>")
+  wb <- openxlsx2::wb_workbook()$add_worksheet()
+  wb <- wb_add_html(wb, html, dims = "A1")
+  expect_equal(sheet_style(wb, "B1")$fill, "-")
+})
+
+test_that("a table level rule is found even when the stylesheet scopes it", {
+  # gt scopes its rules under a wrapper div; looking the table rule up without
+  # the table's own ancestors finds nothing and the font falls back
+  html <- paste0("<style>#wrap .tbl{font-family:Georgia;font-size:20px}</style>",
+                 "<div id=\"wrap\"><table class=\"tbl\"><tr><td>x</td></tr>",
+                 "</table></div>")
+  wb <- openxlsx2::wb_workbook()$add_worksheet()
+  wb <- wb_add_html(wb, html, dims = "A1")
+
+  got <- sheet_style(wb, "A1")
+  expect_equal(got$name, "Georgia")
+  expect_equal(got$size, 15)
+})
+
+test_that("markup that is not well formed XML still parses", {
+  # unclosed void elements, unquoted attributes and missing end tags are all
+  # legal HTML and all rejected by an XML parser
+  html <- paste0("<TABLE BORDER=2><TR><TD NOWRAP>a<br>b<TD>c</TR>",
+                 "<TR><TD>d<TD>e</TR></TABLE>")
+  wb <- openxlsx2::wb_workbook()$add_worksheet()
+  wb <- wb_add_html(wb, html, dims = "A1")
+
+  df <- openxlsx2::wb_to_df(wb, col_names = FALSE)
+  expect_equal(dim(df), c(2L, 2L))
+  expect_equal(df[1L, 1L], "a\nb")
+  expect_equal(df[2L, 2L], "e")
 })

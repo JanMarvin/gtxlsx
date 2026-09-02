@@ -240,3 +240,55 @@ test_that("a tab_style fill on one row stays on that row", {
   expect_false(identical(sheet_style(wb, "B2")$fill, "FFFFFF00"))
   expect_false(identical(sheet_style(wb, "B4")$fill, "FFFFFF00"))
 })
+
+test_that("a gt_group is written one table after another", {
+  skip_no_gt()
+  grp <- gt::gt_group(
+    gt::tab_header(gt::gt(data.frame(a = c("x", "y"))), title = "First"),
+    gt::tab_header(gt::gt(data.frame(a = c("p", "q", "r"))), title = "Second")
+  )
+  wb <- openxlsx2::wb_workbook()$add_worksheet()
+  wb <- wb_add_gt(wb, grp, dims = "A1")
+
+  col <- openxlsx2::wb_to_df(wb, col_names = FALSE)[[1L]]
+  expect_true(all(c("First", "Second", "x", "r") %in% col))
+  # the blank row between them
+  expect_true(any(is.na(col)))
+})
+
+test_that("gap controls the space between grouped tables", {
+  skip_no_gt()
+  grp <- gt::gt_group(gt::gt(data.frame(a = "x")), gt::gt(data.frame(a = "y")))
+
+  tight <- wb_add_gt(openxlsx2::wb_workbook()$add_worksheet(), grp,
+                     dims = "A1", gap = 0)
+  loose <- wb_add_gt(openxlsx2::wb_workbook()$add_worksheet(), grp,
+                     dims = "A1", gap = 3)
+
+  expect_lt(nrow(openxlsx2::wb_to_df(tight, col_names = FALSE)),
+            nrow(openxlsx2::wb_to_df(loose, col_names = FALSE)))
+})
+
+test_that("gt_split output is written as a group", {
+  skip_no_gt()
+  d <- data.frame(a = paste0("r", 1:6), stringsAsFactors = FALSE)
+  sp <- gt::gt_split(gt::gt(d), row_every_n = 3)
+
+  wb <- openxlsx2::wb_workbook()$add_worksheet()
+  wb <- wb_add_gt(wb, sp, dims = "A1")
+
+  # Take the expectation from what gt actually renders, not from the data it
+  # was handed: gt 1.3.0.9000 leaves the second table of a split with stub row
+  # numbers pointing past its own data, so its own HTML comes out empty too.
+  tbls <- sp$gt_tbls
+  n <- if (is.data.frame(tbls)) nrow(tbls) else length(tbls)
+  want <- unlist(lapply(seq_len(n), function(i) {
+    as.character(gtxlsx_extract(gt::grp_pull(sp, which = i))$body$a)
+  }))
+  want <- want[!is.na(want)]
+  col <- openxlsx2::wb_to_df(wb, col_names = FALSE)[[1L]]
+
+  expect_gt(n, 1L)
+  expect_gt(length(want), 0L)
+  expect_true(all(want %in% col))
+})

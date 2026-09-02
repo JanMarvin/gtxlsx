@@ -37,7 +37,7 @@ test_that("regions that gt gives a bottom border get one", {
   wb <- wb_add_gt(wb, tbl, dims = "A1")
 
   html <- suppressWarnings(as.character(gt::as_raw_html(tbl, inline_css = FALSE)))
-  doc <- xml2::read_html(html)
+  doc <- html_parse(html)
   rules <- parse_stylesheet(doc)
 
   st <- wb$styles_mgr$styles
@@ -49,16 +49,28 @@ test_that("regions that gt gives a bottom border get one", {
           fixed = TRUE)
   }
 
+  # gt_col_heading is on the spanner rows too, so the first node with that
+  # class is not the one written to the label row; that border is checked
+  # against the option instead, just below
   spec <- list(
     list("gt_column_spanner", "span", ref_of(p$level_row[[1L]], 2L)),
-    list("gt_col_heading", "th", ref_of(p$label_row, 2L)),
     list("gt_group_heading", "th", ref_of(p$group_head$row[1L], 1L))
   )
+  # assert the comparison either way, so a gt version that drops one of these
+  # borders shows up as a failure rather than as a test that checked nothing
   for (s in spec) {
-    want <- decl_to_rec(css_for(rules, s[[2L]], s[[1L]], NA_character_), th$base_px)
-    if (is.null(want$borders$bottom)) next
-    expect_true(has_bottom(s[[3L]]), info = paste(s[[1L]], "at", s[[3L]]))
+    node <- nd_find_all(doc, s[[2L]])
+    node <- node[vapply(node, function(i) s[[1L]] %in% nd_classes(doc, i), NA)]
+    if (!length(node)) next
+    want <- decl_to_rec(node_decls(doc, node[[1L]], rules), th$base_px)
+    expect_equal(has_bottom(s[[3L]]), !is.null(want$borders$bottom),
+                 info = paste(s[[1L]], "at", s[[3L]]))
   }
+
+  lab <- css_border(opt_chr(g$options, "column_labels_border_bottom_style"),
+                    opt_chr(g$options, "column_labels_border_bottom_width"))
+  expect_equal(has_bottom(ref_of(p$label_row, 2L)),
+               !is.null(lab) && !identical(lab, "none"))
 })
 
 test_that("opt_table_lines(\"all\") gives the column labels vertical lines", {

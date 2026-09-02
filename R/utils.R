@@ -10,9 +10,7 @@ NULL
 # built table, and reimplementing the build would duplicate a large part of gt,
 # so the access is isolated here and checked before use.
 gt_build_data <- function(x, context = "html") {
-  if (!requireNamespace("gt", quietly = TRUE)) {
-    stop("package 'gt' is required", call. = FALSE)
-  }
+  need_gt()
   fun <- try(utils::getFromNamespace("build_data", "gt"), silent = TRUE)
   if (inherits(fun, "try-error") || !is.function(fun)) {
     stop("this version of 'gt' does not provide the table builder gtxlsx needs; ",
@@ -30,6 +28,9 @@ gt_build_data <- function(x, context = "html") {
 render_md <- function(x, context = "html") {
   if (is.null(x) || !length(x)) return(NULL)
   if (inherits(x, "from_markdown")) {
+    if (!requireNamespace("markdown", quietly = TRUE)) {
+      stop("package 'markdown' is required to render md() text", call. = FALSE)
+    }
     out <- markdown::mark(text = as.character(x))
     return(gsub("^<p>|</p>$", "", trimws(out)))
   }
@@ -112,4 +113,13 @@ pick_font <- function(stack, default = "Calibri") {
                "emoji", "math", "fangsong", "inherit", "initial")
   f <- f[nzchar(f) & !tolower(f) %in% generic]
   if (length(f)) f[1L] else default
+}
+
+# gt is a suggestion, not a dependency: wb_add_html() needs nothing from it.
+need_gt <- function() {
+  if (!requireNamespace("gt", quietly = TRUE)) {
+    stop("package 'gt' is required for this function; ",
+         "wb_add_html() works without it", call. = FALSE)
+  }
+  invisible(TRUE)
 }

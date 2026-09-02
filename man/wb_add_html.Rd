@@ -40,9 +40,9 @@ the widths directly, `NULL` leaves them alone.}
 \item{ignore_errors}{Mark text cells that look numeric, so Excel does not
 flag them.}
 
-\item{context}{Pick up block elements sitting beside the table — headings
-above it, notes below it — and write them as merged rows. Set to `FALSE`
-to write the table on its own.}
+\item{context}{Pick up block elements sitting beside the table, such as a
+heading above it or a note below, and write them as merged rows. Set to
+`FALSE` to write the table on its own.}
 
 \item{...}{Currently unused.}
 }
@@ -58,22 +58,28 @@ beside the table rather than inside it are picked up as well.
 }
 \details{
 This is the general path for tables that are already HTML, whatever
-produced them. Old fashioned presentational markup is understood too:
-`bgcolor`, `align`, `valign`, `width`, `nowrap` and `<table border>`.
+produced them. `openxlsx2` is the only thing it needs; `gt` is a suggestion
+and nothing on this path uses it.
+
+Old fashioned presentational markup is understood too: `bgcolor`, `align`,
+`valign`, `width`, `nowrap` and `<table border>`.
 }
 \section{How much CSS is understood}{
 
-Enough for tables, not enough to call it a browser. Selectors are matched
-on their rightmost part — tag, class and id — with the classes of ancestor
-elements checked as well, which is what makes rules like
-`table.report td.total` and `thead td` work. Nested rules, `:is()` and `!important` are
-handled. What is not: `:nth-child()` and other structural or state
-pseudo-classes are skipped rather than applied to every cell, `>` and `+`
-behave like a plain descendant combinator, attribute selectors match on the
-tag alone, and stylesheets pulled in with `<link>` are not fetched.
+Enough for tables, not enough to call it a browser. A selector is matched
+by walking its components against the cell and the elements above it, so
+`table.report td.total`, `thead td` and `div > td` all mean what they say.
+Nested rules, `:is()`, custom properties and `!important` are handled, as
+are the positional pseudo-classes `:first-child`, `:last-child`,
+`:only-child` and `:nth-child()`.
 
-Properties with no spreadsheet equivalent — gradients, letter spacing,
-rounded corners — are dropped. `<img>` and `<svg>` leave an empty cell, and
+What is not: sibling combinators (`+`, `~`), state pseudo-classes and
+`::before` cause a rule to be skipped rather than guessed at, attribute
+selectors match on the tag alone, `@media` conditions are ignored, and
+stylesheets pulled in with `<link>` are not fetched.
+
+Properties with no spreadsheet equivalent, such as gradients, letter
+spacing and rounded corners, are dropped. `<img>` and `<svg>` leave an empty cell, and
 `<a href>` keeps its text but not the link.
 }
 

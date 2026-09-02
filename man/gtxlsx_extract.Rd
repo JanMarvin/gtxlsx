@@ -28,6 +28,7 @@ see why a table came out the way it did, or check what a `gt` feature leaves
 behind before it reaches the worksheet.
 }
 \examples{
+\dontshow{if (requireNamespace("gt", quietly = TRUE)) withAutoprint(\{ # examplesIf}
 library(gt)
 
 tbl <- gt(data.frame(a = 1:2, b = c(1.5, 2.5)))
@@ -36,5 +37,5 @@ tbl <- fmt_number(tbl, columns = "b", decimals = 1)
 g <- gtxlsx_extract(tbl)
 g$body
 g$boxhead$var
-
+\dontshow{\}) # examplesIf}
 }

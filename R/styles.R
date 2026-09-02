@@ -50,6 +50,8 @@ style_targets <- function(row, g, p) {
   loc <- row$locname
   cols_all <- p$col0 - 1L + seq_len(p$w)
   stub_col <- if (length(p$stub_vars)) p$col_of(p$stub_vars[1L]) else p$col0
+  # gt 1.2.0 made cells_stub() target every column of a multi-column stub
+  stub_cols <- if (length(p$stub_vars)) sort(p$col_of(p$stub_vars)) else p$col0
   col_of_name <- function(nm) {
     if (is.na(nm) || !nm %in% p$col_vars) NULL else p$col_of(nm)
   }
@@ -101,9 +103,15 @@ style_targets <- function(row, g, p) {
       i <- body_row_of(row$rownum)
       if (is.null(j) || is.null(i)) NULL else list(rows = i, cols = j)
     },
+    stub_column = ,
     stub = {
       i <- body_row_of(row$rownum)
-      if (is.null(i)) NULL else list(rows = i, cols = stub_col)
+      j <- if (!is.na(row$colname) && row$colname %in% p$col_vars) {
+        p$col_of(row$colname)
+      } else {
+        stub_cols
+      }
+      if (is.null(i)) NULL else list(rows = i, cols = j)
     },
     summary_cells = ,
     grand_summary_cells = {

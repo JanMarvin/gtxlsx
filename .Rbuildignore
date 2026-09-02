@@ -2,6 +2,7 @@
 ^\.Rproj\.user$
 ^\.github$
 ^cran-comments\.md$
+^DESIGN.md$
 ^README\.md$
 ^\.lintr$
 ^\.Rbuildignore$

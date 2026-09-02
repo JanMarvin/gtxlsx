@@ -1,6 +1,6 @@
 num_pat <- paste0(
   "^(?<pre>[^0-9]*?)(?<neg>-|\u2212)?",
-  "(?<int>[0-9]{1,3}(?:(?<grp>[,\u00a0 .'])[0-9]{3})+|[0-9]+)",
+  "(?<int>[0-9]{1,3}(?:(?<grp>[,\u00a0 .'])[0-9]{3})+|[0-9]*)",
   "(?:(?<decm>[.,])(?<dec>[0-9]+))?",
   "(?<suf>[^0-9]*)$"
 )
@@ -68,7 +68,10 @@ infer_numfmt <- function(strings, values) {
   tol <- 0.5 * 10^(-dec_n) * (1 + 1e-9) + 1e-9
   if (any(abs(ref - num) > tol)) return(NULL)
 
-  body <- if (length(grp) == 1L) "#,##0" else "0"
+  # gt's drop_leading_zero prints ".75"; "#" is the Excel code that suppresses
+  # a leading zero the same way
+  lead <- if (all(!nzchar(p$int))) "#" else "0"
+  body <- if (length(grp) == 1L) paste0("#,##", lead) else lead
   if (dec_n > 0L) body <- paste0(body, ".", strrep("0", dec_n))
   fmt <- paste0(quote_affix(trimws(pre)), body,
                 quote_affix(if (pct) "%" else trimws(suf)))
@@ -120,7 +123,8 @@ text_as_numbers <- function(x) {
   pct <- trimws(suf) == "%"
   v[pct] <- v[pct] / 100
 
-  body <- ifelse(nzchar(grp), "#,##0", "0")
+  lead <- ifelse(nzchar(int), "0", "#")
+  body <- ifelse(nzchar(grp), paste0("#,##", lead), lead)
   decn <- nchar(dec)
   body <- ifelse(decn > 0L, paste0(body, ".", strrep("0", decn)), body)
   fmt <- paste0(quote_affix_v(trimws(pre)), body,

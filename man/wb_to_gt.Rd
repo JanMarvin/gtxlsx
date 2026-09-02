@@ -42,7 +42,7 @@ and per-cell fills, fonts and alignment are translated into
 
 This function is a development toy, not a finished feature. It exists
 because the reverse direction was interesting to try, and it has had only
-light testing — a handful of sheets, no round trip guarantees. Treat its
+light testing: a handful of sheets, no round trip guarantees. Treat its
 output as a starting point you will edit, not as a faithful copy, and
 expect the details to change or the function to be withdrawn.
 
@@ -55,6 +55,7 @@ made unique, so repeated labels gain a suffix.
 }
 
 \examples{
+\dontshow{if (requireNamespace("gt", quietly = TRUE)) withAutoprint(\{ # examplesIf}
 library(openxlsx2)
 
 wb <- wb_workbook()$add_worksheet()
@@ -62,5 +63,5 @@ wb$add_data(x = data.frame(a = c("x", "y"), b = c(1, 2)))
 
 tbl <- wb_to_gt(wb, dims = "A1:B3", styles = FALSE)
 class(tbl)
-
+\dontshow{\}) # examplesIf}
 }

@@ -16,7 +16,7 @@
 #'   `groups_rows`, `row_groups`, `spanners`, `heading`, `stubhead`, `styles`,
 #'   `footnotes`, `source_notes`, `summary` and `options`.
 #'
-#' @examples
+#' @examplesIf requireNamespace("gt", quietly = TRUE)
 #' library(gt)
 #'
 #' tbl <- gt(data.frame(a = 1:2, b = c(1.5, 2.5)))

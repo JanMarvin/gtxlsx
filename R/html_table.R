@@ -1,4 +1,4 @@
-xml_find <- function(x, xpath) xml2::xml_find_all(x, xpath)
+# Nodes are integer indices into the parsed document; `doc` travels with them.
 
 # ---- stylesheet -------------------------------------------------------------
 
@@ -161,8 +161,82 @@ pos_ok <- function(cons, i, n) {
   TRUE
 }
 
+# A selector is kept as an ordered chain of components, each with the
+# combinator that precedes it, so that "div > td" can be told apart from
+# "div td". Sibling combinators are not evaluated and cause the rule to be
+# dropped.
+split_selector <- function(sel) {
+  toks <- regmatches(sel, gregexpr("[>+~]|[^\\s>+~]+", sel, perl = TRUE))[[1]]
+  toks <- trimws(toks)
+  toks <- toks[nzchar(toks)]
+  if (!length(toks)) return(NULL)
+  comb <- " "
+  out <- list()
+  for (tk in toks) {
+    if (tk %in% c(">", "+", "~")) {
+      comb <- tk
+      next
+    }
+    out[[length(out) + 1L]] <- list(text = tk, comb = comb)
+    comb <- " "
+  }
+  out
+}
+
+parse_component <- function(x) {
+  tag <- sub("[.#:\\[].*$", "", x)
+  list(
+    tag = if (nzchar(tag)) tolower(tag) else NA_character_,
+    classes = sub("^\\.", "", regmatches(x, gregexpr("\\.[A-Za-z0-9_-]+", x))[[1]]),
+    id = {
+      hit <- regmatches(x, regexpr("#[A-Za-z0-9_-]+", x))
+      if (length(hit)) sub("^#", "", hit) else NA_character_
+    },
+    pos = pos_pseudos(x)
+  )
+}
+
+component_ok <- function(cmp, tag, classes, id) {
+  (is.na(cmp$tag) || identical(cmp$tag, tag)) &&
+    (!length(cmp$classes) || all(cmp$classes %in% classes)) &&
+    (is.na(cmp$id) || identical(cmp$id, id))
+}
+
+# Walk the chain right to left against the cell's ancestors. A child
+# combinator has to match the very next level up; a descendant combinator may
+# skip any number of levels.
+chain_ok <- function(chain, levels, row_i, row_n) {
+  if (length(chain) <= 1L) return(TRUE)
+  i <- 1L
+  for (k in seq(length(chain) - 1L, 1L)) {
+    cmp <- chain[[k]]
+    nxt <- chain[[k + 1L]]$comb
+    if (identical(nxt, ">")) {
+      if (i > length(levels)) return(FALSE)
+      lv <- levels[[i]]
+      if (!component_ok(cmp, lv$tag, lv$classes, lv$id)) return(FALSE)
+      if (!pos_ok(cmp$pos, lv$pos_i, lv$pos_n)) return(FALSE)
+      i <- i + 1L
+    } else {
+      found <- FALSE
+      while (i <= length(levels)) {
+        lv <- levels[[i]]
+        i <- i + 1L
+        if (component_ok(cmp, lv$tag, lv$classes, lv$id) &&
+              pos_ok(cmp$pos, lv$pos_i, lv$pos_n)) {
+          found <- TRUE
+          break
+        }
+      }
+      if (!found) return(FALSE)
+    }
+  }
+  TRUE
+}
+
 parse_stylesheet <- function(doc) {
-  css <- paste(xml2::xml_text(xml_find(doc, "//style")), collapse = "\n")
+  css <- paste(vapply(nd_find_all(doc, "style"), function(i) nd_inner(doc, i),
+                      character(1L)), collapse = "\n")
   if (!nzchar(css)) return(NULL)
   css <- gsub("/\\*.*?\\*/", "", css, perl = TRUE)
 
@@ -175,28 +249,23 @@ parse_stylesheet <- function(doc) {
     # structural and state pseudo-classes are not evaluated here; applying such
     # a rule to every cell is worse than skipping it, so it is dropped
     if (unsupported_pseudo(sel)) next
-    parts <- strsplit(sel, "[ >+~]+")[[1]]
-    parts <- parts[nzchar(parts)]
-    if (!length(parts)) next
-    last <- utils::tail(parts, 1L)
-    up <- utils::head(parts, -1L)
-    anc <- sub("^\\.", "", unlist(regmatches(up, gregexpr("\\.[A-Za-z0-9_-]+", up))))
-    anc <- c(anc, tolower(sub("[.#:\\[].*$", "", up)))
-    anc <- anc[nzchar(anc)]
-    tag <- sub("[.#:\\[].*$", "", last)
-    cls <- sub("^\\.", "", regmatches(last, gregexpr("\\.[A-Za-z0-9_-]+", last))[[1]])
-    id <- sub("^#", "", regmatches(last, regexpr("#[A-Za-z0-9_-]+", last)))
+    if (grepl("[+~]", sel)) next
+    toks <- split_selector(sel)
+    if (is.null(toks)) next
+    chain <- lapply(toks, function(t) c(parse_component(t$text), list(comb = t$comb)))
+    last <- chain[[length(chain)]]
     # a component that names nothing (a bare pseudo-class) would match every
     # cell, so it is dropped rather than applied universally
-    if (!nzchar(tag) && !length(cls) && !length(id)) next
+    if (is.na(last$tag) && !length(last$classes) && is.na(last$id)) next
+    nc <- sum(vapply(chain, function(c0) length(c0$classes), integer(1L)))
+    nid <- sum(vapply(chain, function(c0) !is.na(c0$id), logical(1L)))
     out[[length(out) + 1L]] <- list(
-      tag = if (nzchar(tag)) tolower(tag) else NA_character_,
-      classes = cls,
-      id = if (length(id)) id else NA_character_,
-      ancestors = anc,
-      own_pos = pos_pseudos(last),
-      anc_pos = unlist(lapply(up, pos_pseudos), recursive = FALSE),
-      rank = length(cls) * 10L + length(anc) + (length(id) > 0L) * 100L,
+      tag = last$tag,
+      classes = last$classes,
+      id = last$id,
+      chain = chain,
+      own_pos = last$pos,
+      rank = nc * 10L + length(chain) + nid * 100L,
       order = i,
       decl = flat[[i]]$decl
     )
@@ -204,22 +273,17 @@ parse_stylesheet <- function(doc) {
   out
 }
 
-css_for <- function(rules, tag, classes, id, ancestors = character(0L),
-                    pos = NULL) {
+css_for <- function(rules, tag, classes, id, ancestors = list(), pos = NULL) {
   if (!length(rules)) return(list())
   keep <- vapply(rules, function(r) {
-    if (length(r$own_pos) || length(r$anc_pos)) {
+    if (length(r$own_pos)) {
       if (is.null(pos)) return(FALSE)
       if (!pos_ok(r$own_pos, pos$cell_i, pos$cell_n)) return(FALSE)
-      if (!pos_ok(r$anc_pos, pos$row_i, pos$row_n)) return(FALSE)
     }
-    (is.na(r$tag) || identical(r$tag, tag)) &&
-      (!length(r$classes) || all(r$classes %in% classes)) &&
-      (is.na(r$id) || identical(r$id, id)) &&
-      # descendant combinators are honoured to the extent of requiring the
-      # ancestor classes to appear above this cell; without it a rule such as
-      # ".lt-source-note td" would style every cell in the table
-      (!length(r$ancestors) || all(r$ancestors %in% c(classes, ancestors)))
+    if (!(is.na(r$tag) || identical(r$tag, tag))) return(FALSE)
+    if (length(r$classes) && !all(r$classes %in% classes)) return(FALSE)
+    if (!(is.na(r$id) || identical(r$id, id))) return(FALSE)
+    chain_ok(r$chain, ancestors, pos$row_i, pos$row_n)
   }, logical(1L))
   rules <- rules[keep]
   if (!length(rules)) return(list())
@@ -352,16 +416,18 @@ shorthand_part <- function(x, what) {
 
 # Walk the rows filling an occupancy matrix so that rowspan and colspan cells
 # land on the column they actually occupy.
-html_grid <- function(tbl) {
+html_grid <- function(doc, tbl) {
   # only this table's own rows: "//tr" would descend into a nested table, and
   # the DOM order of tfoot is not its rendered order
-  sect <- function(path) {
-    n <- xml_find(tbl, path)
-    if (length(n)) as.list(n) else list()
+  sect <- function(tags) {
+    if (is.null(tags)) return(as.list(nd_children(doc, tbl, "tr")))
+    out <- integer(0L)
+    for (k in nd_children(doc, tbl, tags)) out <- c(out, nd_children(doc, k, "tr"))
+    as.list(out)
   }
-  parts <- list(head = sect("./thead/tr"),
-                body = c(sect("./tbody/tr"), sect("./tr")),
-                foot = sect("./tfoot/tr"))
+  parts <- list(head = sect("thead"),
+                body = c(sect("tbody"), sect(NULL)),
+                foot = sect("tfoot"))
   rows <- unlist(parts, recursive = FALSE)
   sec <- rep(names(parts), lengths(parts))
   n <- length(rows)
@@ -379,7 +445,7 @@ html_grid <- function(tbl) {
     }
   }
   span <- function(node, attr, default) {
-    v <- suppressWarnings(as.integer(xml2::xml_attr(node, attr)))
+    v <- suppressWarnings(as.integer(nd_attr(doc, node, attr)))
     if (is.na(v)) return(1L)
     if (v == 0L) return(default)
     max(v, 1L)
@@ -387,10 +453,7 @@ html_grid <- function(tbl) {
 
   for (i in seq_len(n)) {
     # xml_children() is markedly cheaper than an xpath evaluated per row
-    kids <- xml2::xml_children(rows[[i]])
-    if (length(kids)) {
-      kids <- kids[tolower(xml2::xml_name(kids)) %in% c("td", "th")]
-    }
+    kids <- nd_children(doc, rows[[i]], c("td", "th"))
     j <- 1L
     for (k in seq_along(kids)) {
       node <- kids[[k]]
@@ -404,7 +467,7 @@ html_grid <- function(tbl) {
       if (nc > length(cells)) length(cells) <- 2L * length(cells)
       cells[[nc]] <- list(
         node = node, row = i, col = j, rowspan = min(rs, n - i + 1L), colspan = cs,
-        tag = tolower(xml2::xml_name(node)), tr = rows[[i]],
+        tag = doc$nodes[[node]]$tag, tr = rows[[i]],
         cell_i = k, cell_n = length(kids),
         row_i = i - min(which(sec == sec[i])) + 1L,
         row_n = sum(sec == sec[i])
@@ -415,14 +478,16 @@ html_grid <- function(tbl) {
   cells <- cells[seq_len(nc)]
   used <- vapply(cells, function(z) z$col + z$colspan - 1L, integer(1L))
   list(cells = cells, nrow = n, ncol = if (length(used)) max(used) else 0L,
-       cols = xml_find(tbl, "./colgroup/col|./col"))
+       cols = c(unlist(lapply(nd_children(doc, tbl, "colgroup"),
+                              function(k) nd_children(doc, k, "col"))),
+                nd_children(doc, tbl, "col")))
 }
 
 # Legacy tables carry their styling in attributes rather than CSS, and plenty
 # of real pages still do: bgcolor, align, valign, width, nowrap, border.
-pres_decls <- function(node) {
+pres_decls <- function(doc, node) {
   a <- function(n) {
-    v <- xml2::xml_attr(node, n)
+    v <- nd_attr(doc, node, n)
     if (is.na(v) || !nzchar(trimws(v))) NULL else trimws(v)
   }
   d <- list()
@@ -431,21 +496,20 @@ pres_decls <- function(node) {
   if (!is.null(a("align"))) d[["text-align"]] <- a("align")
   if (!is.null(a("valign"))) d[["vertical-align"]] <- a("valign")
   if (!is.null(a("face"))) d[["font-family"]] <- a("face")
-  if (!is.na(xml2::xml_attr(node, "nowrap"))) d[["white-space"]] <- "nowrap"
+  if (!is.na(nd_attr(doc, node, "nowrap"))) d[["white-space"]] <- "nowrap"
   w <- a("width")
   if (!is.null(w)) d[["width"]] <- if (grepl("^[0-9.]+$", w)) paste0(w, "px") else w
   d
 }
 
-node_decls <- function(node, rules, ancestors = NULL, pos = NULL) {
+node_decls <- function(doc, node, rules, ancestors = NULL, pos = NULL) {
   if (!length(node)) return(list())
-  if (is.null(ancestors)) ancestors <- node_ancestors(node)
-  d <- css_for(rules, tolower(xml2::xml_name(node)),
-               strsplit(xml2::xml_attr(node, "class") %||% "", "\\s+")[[1]],
-               xml2::xml_attr(node, "id"), ancestors, pos)
-  p <- pres_decls(node)
+  if (is.null(ancestors)) ancestors <- node_ancestors(doc, node)
+  d <- css_for(rules, doc$nodes[[node]]$tag, nd_classes(doc, node),
+               nd_attr(doc, node, "id"), ancestors, pos)
+  p <- pres_decls(doc, node)
   d[names(p)] <- p
-  inline <- parse_css_decls(xml2::xml_attr(node, "style"))
+  inline <- parse_css_decls(nd_attr(doc, node, "style"))
   d[names(inline)] <- inline
   d
 }
@@ -454,11 +518,11 @@ node_decls <- function(node, rules, ancestors = NULL, pos = NULL) {
 # descendant combinators
 # Kept out of the writer so the cache is passed as an argument rather than
 # captured: a closure over it reads as an unused variable to static checkers.
-cached_ancestors <- function(cell, cache) {
+cached_ancestors <- function(doc, cell, cache) {
   key <- as.character(cell$row)
   hit <- cache[[key]]
   if (is.null(hit)) {
-    hit <- node_ancestors(cell$node)
+    hit <- node_ancestors(doc, cell$node)
     cache[[key]] <- hit
   }
   hit
@@ -468,29 +532,32 @@ cached_anc_sig <- function(cell, cache, ancestors) {
   key <- as.character(cell$row)
   hit <- cache[[key]]
   if (is.null(hit)) {
-    hit <- paste0(c("|", ancestors), collapse = ",")
+    hit <- paste0("|", paste0(vapply(ancestors, function(lv) {
+      paste(lv$tag, paste(lv$classes, collapse = "."), lv$id, lv$pos_i, lv$pos_n,
+            sep = "\r")
+    }, character(1L)), collapse = "|"))
     cache[[key]] <- hit
   }
   hit
 }
 
-node_ancestors <- function(node) {
-  out <- character(0L)
-  p <- xml2::xml_parent(node)
-  while (length(p) && !identical(xml2::xml_name(p), "html")) {
-    out <- c(out, tolower(xml2::xml_name(p)),
-             strsplit(xml2::xml_attr(p, "class") %||% "", "\\s+")[[1]])
-    p <- xml2::xml_parent(p)
+node_ancestors <- function(doc, node) {
+  out <- list()
+  p <- doc$nodes[[node]]$parent
+  while (!is.na(p) && p > 1L && !identical(doc$nodes[[p]]$tag, "html")) {
+    sib <- nd_sibling_index(doc, p)
+    out[[length(out) + 1L]] <- list(
+      tag = doc$nodes[[p]]$tag,
+      classes = nd_classes(doc, p),
+      id = nd_attr(doc, p, "id"),
+      pos_i = sib$i,
+      pos_n = sib$n
+    )
+    p <- doc$nodes[[p]]$parent
   }
-  out[nzchar(out)]
+  out
 }
 
-inner_html <- function(node) {
-  s <- as.character(node)
-  s <- sub("^<[^>]*>", "", s)
-  s <- sub("</[a-zA-Z0-9]+>\\s*$", "", s)
-  trimws(s)
-}
 
 # ---- writer -----------------------------------------------------------------
 
@@ -503,21 +570,27 @@ inner_html <- function(node) {
 #' beside the table rather than inside it are picked up as well.
 #'
 #' This is the general path for tables that are already HTML, whatever
-#' produced them. Old fashioned presentational markup is understood too:
-#' `bgcolor`, `align`, `valign`, `width`, `nowrap` and `<table border>`.
+#' produced them. `openxlsx2` is the only thing it needs; `gt` is a suggestion
+#' and nothing on this path uses it.
+#'
+#' Old fashioned presentational markup is understood too: `bgcolor`, `align`,
+#' `valign`, `width`, `nowrap` and `<table border>`.
 #'
 #' @section How much CSS is understood:
-#' Enough for tables, not enough to call it a browser. Selectors are matched
-#' on their rightmost part — tag, class and id — with the classes of ancestor
-#' elements checked as well, which is what makes rules like
-#' `table.report td.total` and `thead td` work. Nested rules, `:is()` and `!important` are
-#' handled. What is not: `:nth-child()` and other structural or state
-#' pseudo-classes are skipped rather than applied to every cell, `>` and `+`
-#' behave like a plain descendant combinator, attribute selectors match on the
-#' tag alone, and stylesheets pulled in with `<link>` are not fetched.
+#' Enough for tables, not enough to call it a browser. A selector is matched
+#' by walking its components against the cell and the elements above it, so
+#' `table.report td.total`, `thead td` and `div > td` all mean what they say.
+#' Nested rules, `:is()`, custom properties and `!important` are handled, as
+#' are the positional pseudo-classes `:first-child`, `:last-child`,
+#' `:only-child` and `:nth-child()`.
 #'
-#' Properties with no spreadsheet equivalent — gradients, letter spacing,
-#' rounded corners — are dropped. `<img>` and `<svg>` leave an empty cell, and
+#' What is not: sibling combinators (`+`, `~`), state pseudo-classes and
+#' `::before` cause a rule to be skipped rather than guessed at, attribute
+#' selectors match on the tag alone, `@media` conditions are ignored, and
+#' stylesheets pulled in with `<link>` are not fetched.
+#'
+#' Properties with no spreadsheet equivalent, such as gradients, letter
+#' spacing and rounded corners, are dropped. `<img>` and `<svg>` leave an empty cell, and
 #' `<a href>` keeps its text but not the link.
 #'
 #' @param wb A `wbWorkbook` object.
@@ -534,9 +607,9 @@ inner_html <- function(node) {
 #'   the widths directly, `NULL` leaves them alone.
 #' @param ignore_errors Mark text cells that look numeric, so Excel does not
 #'   flag them.
-#' @param context Pick up block elements sitting beside the table — headings
-#'   above it, notes below it — and write them as merged rows. Set to `FALSE`
-#'   to write the table on its own.
+#' @param context Pick up block elements sitting beside the table, such as a
+#'   heading above it or a note below, and write them as merged rows. Set to
+#'   `FALSE` to write the table on its own.
 #' @param ... Currently unused.
 #'
 #' @return The workbook, invisibly.
@@ -565,31 +638,29 @@ wb_add_html <- function(wb, x, sheet = current_sheet(), dims = "A1", which = 1L,
   if (!inherits(wb, "wbWorkbook")) {
     stop("`wb` must be a 'wbWorkbook' object", call. = FALSE)
   }
-  if (!requireNamespace("xml2", quietly = TRUE)) {
-    stop("package 'xml2' is required to read HTML", call. = FALSE)
-  }
   wb <- wb$clone()
 
   looks_like_path <- length(x) == 1L && is.character(x) && nchar(x) < 1024L &&
     !grepl("[<\n]", x) && file.exists(x)
-  html <- if (looks_like_path) {
-    xml2::read_html(x)
-  } else if (inherits(x, "xml_document")) {
+  doc <- if (looks_like_path) {
+    html_parse(paste(readLines(x, warn = FALSE), collapse = "\n"))
+  } else if (is.list(x) && !is.null(x$nodes)) {
     x
   } else {
-    xml2::read_html(paste(as.character(x), collapse = "\n"))
+    html_parse(as.character(x))
   }
 
-  tables <- xml_find(html, "//table")
+  tables <- nd_find_all(doc, "table")
   if (!length(tables)) stop("no <table> found", call. = FALSE)
   if (which > length(tables)) stop("`which` is past the last table", call. = FALSE)
   tbl <- tables[[which]]
 
-  rules <- parse_stylesheet(html)
+  rules <- parse_stylesheet(doc)
   base_px <- 16
-  tbl_class <- strsplit(xml2::xml_attr(tbl, "class") %||% "", "\\s+")[[1]]
-  root <- css_for(rules, "table", tbl_class,
-                  xml2::xml_attr(tbl, "id"))
+  # the table's own ancestors matter: gt scopes its rules under the wrapper
+  # div, so a root lookup without them finds nothing
+  root <- css_for(rules, "table", nd_classes(doc, tbl), nd_attr(doc, tbl, "id"),
+                  node_ancestors(doc, tbl))
   if (!is.null(root[["font-size"]])) {
     base_px <- css_px(root[["font-size"]], base = 16)
     if (is.na(base_px)) base_px <- 16
@@ -604,7 +675,7 @@ wb_add_html <- function(wb, x, sheet = current_sheet(), dims = "A1", which = 1L,
                               c("color", "font-family", "font-size", "font-weight",
                                 "font-style", "text-align", "white-space"))]
 
-  g <- html_grid(tbl)
+  g <- html_grid(doc, tbl)
   if (is.null(g)) stop("the table has no rows", call. = FALSE)
 
   rc <- openxlsx2::dims_to_rowcol(dims, as_integer = TRUE)
@@ -612,7 +683,7 @@ wb_add_html <- function(wb, x, sheet = current_sheet(), dims = "A1", which = 1L,
   col0 <- min(rc$col)
 
   # a table-wide border="1" is a presentational shorthand for thin gridlines
-  bw <- suppressWarnings(as.integer(xml2::xml_attr(tbl, "border")))
+  bw <- suppressWarnings(as.integer(nd_attr(doc, tbl, "border")))
   table_border <- if (!is.na(bw) && bw > 0L) {
     list(`border-style` = "solid", `border-width` = paste0(bw, "px"),
          `border-color` = "#808080")
@@ -625,7 +696,7 @@ wb_add_html <- function(wb, x, sheet = current_sheet(), dims = "A1", which = 1L,
   # halves are cached: ancestors per row, resolved declarations per signature.
   rec_cache <- new.env(parent = emptyenv())
   anc_cache <- new.env(parent = emptyenv())
-  row_ancestors <- function(cell) cached_ancestors(cell, anc_cache)
+  row_ancestors <- function(cell) cached_ancestors(doc, cell, anc_cache)
   # the cascade depends on what sits above a cell, so the cache key has to
   # carry the ancestor chain as well
   anc_sig_cache <- new.env(parent = emptyenv())
@@ -636,9 +707,9 @@ wb_add_html <- function(wb, x, sheet = current_sheet(), dims = "A1", which = 1L,
   if (length(g$cols)) {
     j <- 1L
     for (k in seq_along(g$cols)) {
-      cn <- suppressWarnings(as.integer(xml2::xml_attr(g$cols[[k]], "span")))
+      cn <- suppressWarnings(as.integer(nd_attr(doc, g$cols[[k]], "span")))
       if (is.na(cn) || cn < 1L) cn <- 1L
-      d <- node_decls(g$cols[[k]], rules)
+      d <- node_decls(doc, g$cols[[k]], rules)
       for (jj in seq.int(j, min(j + cn - 1L, length(col_decl)))) col_decl[[jj]] <- d
       j <- j + cn
     }
@@ -648,14 +719,12 @@ wb_add_html <- function(wb, x, sheet = current_sheet(), dims = "A1", which = 1L,
   for (cell in g$cells) {
     if (cell$row %in% seen) next
     seen <- c(seen, cell$row)
-    row_decl[[cell$row]] <- node_decls(cell$tr, rules)
+    row_decl[[cell$row]] <- node_decls(doc, cell$tr, rules)
   }
 
   # One pass over every cell's text instead of one call per cell: extracting,
   # stripping and number parsing are all vectorised.
-  cell_txt <- vapply(g$cells, function(z) as.character(z$node), character(1L))
-  cell_txt <- sub("^<[^>]*>", "", cell_txt)
-  cell_txt <- trimws(sub("</[a-zA-Z0-9]+>\\s*$", "", cell_txt))
+  cell_txt <- vapply(g$cells, function(z) nd_inner(doc, z$node), character(1L))
   cell_plain <- html_strip_fast(cell_txt)
   cell_blank <- !nzchar(gsub("[\\s\u00a0]", "", cell_plain, perl = TRUE))
   cell_txt[cell_blank] <- ""
@@ -684,17 +753,25 @@ wb_add_html <- function(wb, x, sheet = current_sheet(), dims = "A1", which = 1L,
   sibling_blocks <- function(where) {
     if (!isTRUE(context)) return(list())
     out <- list()
+    blocks <- c("div", "p", "h1", "h2", "h3", "h4")
     node <- tbl
     for (lvl in 1:3) {
-      p <- xml2::xml_parent(node)
-      if (!length(p) || tolower(xml2::xml_name(p)) %in% c("body", "html", "")) break
-      sibs <- xml_find(node, paste0(where, "-sibling::div|", where, "-sibling::p|",
-                                    where, "-sibling::h1|", where, "-sibling::h2|",
-                                    where, "-sibling::h3|", where, "-sibling::h4"))
-      for (k in seq_along(sibs)) {
-        if (length(xml_find(sibs[[k]], ".//table"))) next
-        if (!nzchar(trimws(xml2::xml_text(sibs[[k]])))) next
-        out[[length(out) + 1L]] <- sibs[[k]]
+      p <- doc$nodes[[node]]$parent
+      if (is.na(p) || p <= 1L || doc$nodes[[p]]$tag %in% c("body", "html")) break
+      kids <- doc$nodes[[p]]$children
+      at <- match(node, kids)
+      side <- if (identical(where, "preceding")) {
+        if (at > 1L) kids[seq_len(at - 1L)] else integer(0L)
+      } else if (at < length(kids)) {
+        kids[seq.int(at + 1L, length(kids))]
+      } else {
+        integer(0L)
+      }
+      for (k in side) {
+        if (!doc$nodes[[k]]$tag %in% blocks) next
+        if (length(nd_find(doc, k, "table"))) next
+        if (!nzchar(trimws(nd_text(doc, k)))) next
+        out[[length(out) + 1L]] <- k
       }
       node <- p
     }
@@ -702,7 +779,7 @@ wb_add_html <- function(wb, x, sheet = current_sheet(), dims = "A1", which = 1L,
   }
 
   write_block <- function(node, r) {
-    txt <- inner_html(node)
+    txt <- nd_inner(doc, node)
     if (!nzchar(html_strip(txt) %||% "")) return(FALSE)
     decl <- inherited
     own <- node_decls(node, rules)
@@ -730,21 +807,19 @@ wb_add_html <- function(wb, x, sheet = current_sheet(), dims = "A1", which = 1L,
 
   # <caption> sits outside the row grid; its block children become merged rows
   # above the table
-  caption <- xml_find(tbl, "./caption")
+  caption <- nd_children(doc, tbl, "caption")
   if (length(caption)) {
-    blocks <- xml_find(caption[[1L]], "./div|./p|./span")
+    blocks <- nd_children(doc, caption[[1L]], c("div", "p", "span"))
     if (!length(blocks)) blocks <- caption
     for (k in seq_along(blocks)) {
       node <- blocks[[k]]
-      txt <- inner_html(node)
+      txt <- nd_inner(doc, node)
       if (!nzchar(html_strip(txt) %||% "")) next
       cap_rows <- cap_rows + 1L
       decl <- inherited
-      own <- css_for(rules, tolower(xml2::xml_name(node)),
-                     strsplit(xml2::xml_attr(node, "class") %||% "", "\\s+")[[1]],
-                     xml2::xml_attr(node, "id"), node_ancestors(node))
+      own <- node_decls(doc, node, rules)
       decl[names(own)] <- own
-      inline <- parse_css_decls(xml2::xml_attr(node, "style"))
+      inline <- list()
       decl[names(inline)] <- inline
       rec <- decl_to_rec(decl, base_px)
       rec$borders <- NULL
@@ -770,9 +845,9 @@ wb_add_html <- function(wb, x, sheet = current_sheet(), dims = "A1", which = 1L,
     # The whole style pipeline for a cell depends only on its tag, its own
     # class/style attributes, its row and column, and its wrapper chain. Cells
     # repeat those endlessly, so the finished record is cached on them.
-    cls <- xml2::xml_attr(node, "class")
-    sty <- xml2::xml_attr(node, "style")
-    nkid <- xml2::xml_length(node, only_elements = TRUE)
+    cls <- nd_attr(doc, node, "class")
+    sty <- nd_attr(doc, node, "style")
+    nkid <- length(doc$nodes[[node]]$children)
     pos <- list(cell_i = cell$cell_i, cell_n = cell$cell_n,
                 row_i = cell$row_i, row_n = cell$row_n)
     # only the answers the pseudo-classes can give belong in the key
@@ -797,11 +872,11 @@ wb_add_html <- function(wb, x, sheet = current_sheet(), dims = "A1", which = 1L,
       # keeps its styling on those wrappers, so follow the chain down
       wrap <- list()
       inner <- node
-      while (xml2::xml_length(inner, only_elements = TRUE) == 1L) {
-        kid <- xml2::xml_children(inner)[[1L]]
-        if (!tolower(xml2::xml_name(kid)) %in% c("p", "div", "span")) break
+      while (length(doc$nodes[[inner]]$children) == 1L) {
+        kid <- doc$nodes[[inner]]$children[[1L]]
+        if (!doc$nodes[[kid]]$tag %in% c("p", "div", "span")) break
         inner <- kid
-        w <- node_decls(inner, rules, anc, pos)
+        w <- node_decls(doc, inner, rules, anc, pos)
         # a wrapper routinely declares background-color:transparent, which must
         # not wipe the background the cell itself sets
         w <- w[!vapply(w, function(v) {
@@ -812,8 +887,8 @@ wb_add_html <- function(wb, x, sheet = current_sheet(), dims = "A1", which = 1L,
       }
 
       for (extra in list(inherited, table_border, col_decl[[cell$col]],
-                         row_decl[[cell$row]], node_decls(node, rules, anc, pos),
-                         wrap)) {
+                         row_decl[[cell$row]],
+                         node_decls(doc, node, rules, anc, pos), wrap)) {
         if (length(extra)) decl[names(extra)] <- extra
       }
       decl <- resolve_vars(decl, c(root_vars, css_var_defs(decl)))

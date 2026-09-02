@@ -98,7 +98,7 @@ as_numeric_col <- function(x) {
 #' @section Please read this before using it:
 #' This function is a development toy, not a finished feature. It exists
 #' because the reverse direction was interesting to try, and it has had only
-#' light testing — a handful of sheets, no round trip guarantees. Treat its
+#' light testing: a handful of sheets, no round trip guarantees. Treat its
 #' output as a starting point you will edit, not as a faithful copy, and
 #' expect the details to change or the function to be withdrawn.
 #'
@@ -120,7 +120,7 @@ as_numeric_col <- function(x) {
 #'
 #' @return A `gt_tbl` object.
 #'
-#' @examples
+#' @examplesIf requireNamespace("gt", quietly = TRUE)
 #' library(openxlsx2)
 #'
 #' wb <- wb_workbook()$add_worksheet()
@@ -135,6 +135,7 @@ wb_to_gt <- function(wb, sheet = current_sheet(), dims = NULL, styles = TRUE,
   if (!inherits(wb, "wbWorkbook")) {
     stop("`wb` must be a 'wbWorkbook' object", call. = FALSE)
   }
+  need_gt()
 
   args <- list(wb, sheet = sheet, col_names = FALSE, ...)
   if (!is.null(dims)) args$dims <- dims

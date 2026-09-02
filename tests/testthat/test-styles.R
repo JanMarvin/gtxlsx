@@ -89,3 +89,24 @@ test_that("a style with no usable target is skipped", {
   expect_null(style_targets(list(locname = "title"), NULL, p))
   expect_null(style_targets(list(locname = "unknown"), NULL, p))
 })
+
+test_that("cells_stub reaches every column of a multi column stub", {
+  skip_no_gt()
+  d <- data.frame(a = c("x", "y"), b = c("p", "q"), v = c(1, 2),
+                  stringsAsFactors = FALSE)
+  tbl <- try(gt::gt(d, rowname_col = c("a", "b")), silent = TRUE)
+  skip_if(inherits(tbl, "try-error"), "this gt has no multi-column stub")
+
+  tbl <- gt::tab_style(tbl, gt::cell_fill(color = "yellow"),
+                       gt::cells_stub(rows = 1))
+  wb <- openxlsx2::wb_workbook()$add_worksheet()
+  wb <- wb_add_gt(wb, tbl, dims = "A1")
+
+  g <- gtxlsx_extract(tbl)
+  th <- gtxlsx_theme(g$options)
+  p <- gtxlsx_plan(g, th, 1L, 1L)
+  for (v in p$stub_vars) {
+    expect_equal(sheet_style(wb, ref_of(p$body_row[1L], p$col_of(v)))$fill,
+                 "FFFFFF00", info = v)
+  }
+})
