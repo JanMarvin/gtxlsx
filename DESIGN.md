@@ -57,6 +57,27 @@ checks it is there and fails with an explanatory message if not, and a
 test asserts that every component the package reads is still present, so
 a gt release that moves things breaks the suite rather than the output.
 
+### Whose problem that is
+
+Ours, and it should stay ours. `build_data()` is internal, gt owes it no
+stability, and the component test is a tripwire for us rather than a
+claim on gt. If a release moves it, the fix belongs here.
+
+This is also why the package sits on r-universe rather than CRAN. On
+CRAN, gt would see gtxlsx in its reverse dependency checks: their
+maintainer would get a red result they did not cause and cannot fix
+without asking us to change something. That is the real cost of reaching
+into another package’s internals, and it is worth more than the
+packaging convenience of being on CRAN. Off CRAN, gt never sees us and
+owes us nothing.
+
+Two things follow. Bugs found in gt are reported as gt bugs,
+demonstrated through gt’s own output, with no mention of this package.
+And nothing is asked of gt that only makes sense because of the internal
+access. The clean way out, if it ever comes, is gt exporting an accessor
+for a built table, which would turn this from taking something into
+using something.
+
 `gtxlsx_theme()` reduces gt’s ~200 `tab_options()` entries to the two
 dozen values the writer needs: fonts and sizes per region, fills,
 weights, padding, striping. Two details worth knowing:
