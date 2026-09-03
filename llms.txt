@@ -43,7 +43,7 @@ Or from GitHub directly:
 
 ``` r
 
-remotes::install_github("JanMarvin/xlsx")
+remotes::install_github("JanMarvin/gtxlsx")
 ```
 
 ## A gt table
@@ -97,6 +97,8 @@ html <- '
 
 wb <- wb_workbook()$add_worksheet()
 wb <- wb_add_html(wb, html, dims = "A1")
+
+if (interactive()) wb$open()
 ```
 
 ## What is covered

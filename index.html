@@ -72,7 +72,7 @@
 <span><span class="op">)</span></span></code></pre></div>
 <p>Or from GitHub directly:</p>
 <div class="sourceCode" id="cb2"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="fu">remotes</span><span class="fu">::</span><span class="fu">install_github</span><span class="op">(</span><span class="st">"JanMarvin/xlsx"</span><span class="op">)</span></span></code></pre></div>
+<code class="sourceCode R"><span><span class="fu">remotes</span><span class="fu">::</span><span class="fu">install_github</span><span class="op">(</span><span class="st">"JanMarvin/gtxlsx"</span><span class="op">)</span></span></code></pre></div>
 </div>
 <div class="section level2">
 <h2 id="a-gt-table">A gt table<a class="anchor" aria-label="anchor" href="#a-gt-table"></a>
@@ -116,7 +116,9 @@
 <span><span class="st">&lt;/table&gt;'</span></span>
 <span></span>
 <span><span class="va">wb</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://janmarvin.github.io/openxlsx2/reference/wb_workbook.html" class="external-link">wb_workbook</a></span><span class="op">(</span><span class="op">)</span><span class="op">$</span><span class="fu">add_worksheet</span><span class="op">(</span><span class="op">)</span></span>
-<span><span class="va">wb</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/wb_add_html.html">wb_add_html</a></span><span class="op">(</span><span class="va">wb</span>, <span class="va">html</span>, dims <span class="op">=</span> <span class="st">"A1"</span><span class="op">)</span></span></code></pre></div>
+<span><span class="va">wb</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/wb_add_html.html">wb_add_html</a></span><span class="op">(</span><span class="va">wb</span>, <span class="va">html</span>, dims <span class="op">=</span> <span class="st">"A1"</span><span class="op">)</span></span>
+<span></span>
+<span><span class="kw">if</span> <span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/interactive.html" class="external-link">interactive</a></span><span class="op">(</span><span class="op">)</span><span class="op">)</span> <span class="va">wb</span><span class="op">$</span><span class="fu">open</span><span class="op">(</span><span class="op">)</span></span></code></pre></div>
 </div>
 <div class="section level2">
 <h2 id="what-is-covered">What is covered<a class="anchor" aria-label="anchor" href="#what-is-covered"></a>
