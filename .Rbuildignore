@@ -4,6 +4,7 @@
 ^cran-comments\.md$
 ^DESIGN.md$
 ^README\.md$
+^README\.Rmd$
 ^\.lintr$
 ^\.Rbuildignore$
 ^_pkgdown\.yml$
