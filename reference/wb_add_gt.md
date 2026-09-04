@@ -18,6 +18,8 @@ wb_add_gt(
   row_heights = NULL,
   ignore_errors = TRUE,
   gap = 1L,
+  features = TRUE,
+  freeze = FALSE,
   ...
 )
 ```
@@ -72,6 +74,21 @@ wb_add_gt(
   Blank rows left between the tables of a \`gt_group\`. Ignored for a
   single table.
 
+- features:
+
+  What to write besides the values. \`TRUE\`, the default, is all of
+  them; \`FALSE\` writes values only. Otherwise a character vector of
+  any of \`"font"\`, \`"fill"\`, \`"border"\`, \`"numfmt"\`, \`"merge"\`
+  and \`"link"\`, so a table that goes wrong in one respect can still be
+  written in every other.
+
+- freeze:
+
+  Freeze panes so the heading and the stub stay in view while scrolling.
+  \`TRUE\` freezes below the heading and beside the stub, a length-two
+  vector \`c(row, col)\` freezes at a cell of your choosing, and
+  \`FALSE\`, the default, leaves the sheet alone.
+
 - ...:
 
   Currently unused.
@@ -108,6 +125,12 @@ The colour comes from gt, and gt's default is white. On a worksheet with
 a coloured background that white will cover the tint under the table.
 Set \`table.background.color\` to match, or turn striping off, if that
 matters.
+
+## Links
+
+\`fmt_url()\` and \`fmt_email()\` leave an anchor in the cell, and that
+becomes a hyperlink on the cell. The text shown is whatever \`gt\` put
+there.
 
 ## Numbers versus text
 

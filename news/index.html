@@ -7,7 +7,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">gtxlsx</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.3.0</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.3.0.9000</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -29,9 +29,19 @@
   <main id="main" class="col-md-9"><div class="page-header">
 
       <h1>Changelog</h1>
-      <small>Source: <a href="https://github.com/JanMarvin/gtxlsx/blob/v0.3.0/NEWS.md" class="external-link"><code>NEWS.md</code></a></small>
+      <small>Source: <a href="https://github.com/JanMarvin/gtxlsx/blob/main/NEWS.md" class="external-link"><code>NEWS.md</code></a></small>
     </div>
 
+    <div class="section level2">
+<h2 class="pkg-version" data-toc-text="development version" id="gtxlsx-development-version">gtxlsx (development version)<a class="anchor" aria-label="anchor" href="#gtxlsx-development-version"></a></h2>
+<ul><li><p><code><a href="https://gt.rstudio.com/reference/fmt_url.html" class="external-link">fmt_url()</a></code> and <code><a href="https://gt.rstudio.com/reference/fmt_email.html" class="external-link">fmt_email()</a></code> produce real hyperlinks, and an <code>&lt;a href&gt;</code> in any HTML table does the same. A link that only points at a fragment of the source page is skipped, since it means nothing in a workbook.</p></li>
+<li><p>Where a cell holds several anchors, the first usable one is taken. A footnote marker pointing at a fragment of its own page no longer hides the real link beside it.</p></li>
+<li><p>A <code>&lt;tr&gt;</code> with no cells is a spacer the page uses for layout, and no longer lands as a blank row in the sheet.</p></li>
+<li><p>New <code>features</code> argument on <code><a href="../reference/wb_add_gt.html">wb_add_gt()</a></code> and <code><a href="../reference/wb_add_html.html">wb_add_html()</a></code> decides what is written besides the values: any of <code>"font"</code>, <code>"fill"</code>, <code>"border"</code>, <code>"numfmt"</code>, <code>"merge"</code> and <code>"link"</code>. <code>FALSE</code> writes values only, so a table that goes wrong in one respect can still be written in every other.</p></li>
+<li><p>New <code>freeze</code> argument keeps the heading and the stub in view while scrolling. <code>TRUE</code> works the split out from the table, <code>c(row, col)</code> puts it where you say.</p></li>
+<li><p>Links that cannot be written are reported: a warning names how many were dropped because a cell already had one, and how many pointed only into the source page.</p></li>
+<li><p><code><a href="../reference/wb_add_html.html">wb_add_html()</a></code> accepts anything with an <code><a href="https://rdrr.io/r/base/character.html" class="external-link">as.character()</a></code> method that returns HTML, so what <code>rvest</code> and <code>xml2</code> hand back can be passed straight in: a whole page or a single <code>&lt;table&gt;</code> node.</p></li>
+</ul></div>
     <div class="section level2">
 <h2 class="pkg-version" data-toc-text="0.3.0" id="gtxlsx-030">gtxlsx 0.3.0<a class="anchor" aria-label="anchor" href="#gtxlsx-030"></a></h2>
 <ul><li><p><code>gt</code> and <code>markdown</code> moved to Suggests, and <code>xml2</code> is gone. <code><a href="../reference/wb_add_html.html">wb_add_html()</a></code> now needs nothing but <code>openxlsx2</code>, so using it no longer pulls in <code>gt</code>’s dependency tree.</p></li>

@@ -1,5 +1,40 @@
 # Changelog
 
+## gtxlsx (development version)
+
+- [`fmt_url()`](https://gt.rstudio.com/reference/fmt_url.html) and
+  [`fmt_email()`](https://gt.rstudio.com/reference/fmt_email.html)
+  produce real hyperlinks, and an `<a href>` in any HTML table does the
+  same. A link that only points at a fragment of the source page is
+  skipped, since it means nothing in a workbook.
+
+- Where a cell holds several anchors, the first usable one is taken. A
+  footnote marker pointing at a fragment of its own page no longer hides
+  the real link beside it.
+
+- A `<tr>` with no cells is a spacer the page uses for layout, and no
+  longer lands as a blank row in the sheet.
+
+- New `features` argument on [`wb_add_gt()`](../reference/wb_add_gt.md)
+  and [`wb_add_html()`](../reference/wb_add_html.md) decides what is
+  written besides the values: any of `"font"`, `"fill"`, `"border"`,
+  `"numfmt"`, `"merge"` and `"link"`. `FALSE` writes values only, so a
+  table that goes wrong in one respect can still be written in every
+  other.
+
+- New `freeze` argument keeps the heading and the stub in view while
+  scrolling. `TRUE` works the split out from the table, `c(row, col)`
+  puts it where you say.
+
+- Links that cannot be written are reported: a warning names how many
+  were dropped because a cell already had one, and how many pointed only
+  into the source page.
+
+- [`wb_add_html()`](../reference/wb_add_html.md) accepts anything with
+  an [`as.character()`](https://rdrr.io/r/base/character.html) method
+  that returns HTML, so what `rvest` and `xml2` hand back can be passed
+  straight in: a whole page or a single `<table>` node.
+
 ## gtxlsx 0.3.0
 
 - `gt` and `markdown` moved to Suggests, and `xml2` is gone.

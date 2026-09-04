@@ -20,6 +20,8 @@ wb_add_html(
   col_widths = "auto",
   ignore_errors = TRUE,
   context = TRUE,
+  features = TRUE,
+  freeze = FALSE,
   ...
 )
 ```
@@ -32,8 +34,10 @@ wb_add_html(
 
 - x:
 
-  HTML: a string, a file path, or anything with an \`as.character()\`
-  method that returns HTML.
+  HTML: a string, a file path, an already parsed document, or anything
+  with an \`as.character()\` method that returns HTML. That includes
+  what \`rvest\` and \`xml2\` hand back, so a scraped page or a single
+  \`\<table\>\` node can be passed straight in.
 
 - sheet:
 
@@ -68,6 +72,21 @@ wb_add_html(
   above it or a note below, and write them as merged rows. Set to
   \`FALSE\` to write the table on its own.
 
+- features:
+
+  What to write besides the values. \`TRUE\`, the default, is all of
+  them; \`FALSE\` writes values only. Otherwise a character vector of
+  any of \`"font"\`, \`"fill"\`, \`"border"\`, \`"numfmt"\`, \`"merge"\`
+  and \`"link"\`. A page whose CSS or links go wrong in one respect can
+  still be written in every other.
+
+- freeze:
+
+  Freeze panes so the header rows and any leading \`\<th\>\` column stay
+  in view while scrolling. \`TRUE\` works them out from the table, a
+  length-two vector \`c(row, col)\` freezes at a cell of your choosing,
+  and \`FALSE\`, the default, leaves the sheet alone.
+
 - ...:
 
   Currently unused.
@@ -93,6 +112,13 @@ above it, so \`table.report td.total\`, \`thead td\` and \`div \> td\`
 all mean what they say. Nested rules, \`:is()\`, custom properties and
 \`!important\` are handled, as are the positional pseudo-classes
 \`:first-child\`, \`:last-child\`, \`:only-child\` and \`:nth-child()\`.
+
+An \`\<a href\>\` inside a cell becomes a hyperlink on that cell, and
+the whole cell is what becomes clickable: a spreadsheet has no way to
+link part of a cell's text. The first usable anchor is taken, since a
+cell holds one target, and a link that only points at a fragment of the
+source page is skipped. Either of those produces a warning naming how
+many were dropped.
 
 What is not: sibling combinators (\`+\`, \`~\`), state pseudo-classes
 and \`::before\` cause a rule to be skipped rather than guessed at,

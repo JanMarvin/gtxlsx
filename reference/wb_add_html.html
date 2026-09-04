@@ -15,7 +15,7 @@ beside the table rather than inside it are picked up as well."></head><body>
 
     <a class="navbar-brand me-2" href="../index.html">gtxlsx</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.3.0</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.3.0.9000</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -37,7 +37,7 @@ beside the table rather than inside it are picked up as well."></head><body>
   <main id="main" class="col-md-9"><div class="page-header">
 
       <h1>Write an HTML table into a worksheet</h1>
-      <small class="dont-index">Source: <a href="https://github.com/JanMarvin/gtxlsx/blob/v0.3.0/R/html_table.R" class="external-link"><code>R/html_table.R</code></a></small>
+      <small class="dont-index">Source: <a href="https://github.com/JanMarvin/gtxlsx/blob/main/R/html_table.R" class="external-link"><code>R/html_table.R</code></a></small>
       <div class="d-none name"><code>wb_add_html.Rd</code></div>
     </div>
 
@@ -61,6 +61,8 @@ beside the table rather than inside it are picked up as well.</p>
 <span>  col_widths <span class="op">=</span> <span class="st">"auto"</span>,</span>
 <span>  ignore_errors <span class="op">=</span> <span class="cn">TRUE</span>,</span>
 <span>  context <span class="op">=</span> <span class="cn">TRUE</span>,</span>
+<span>  features <span class="op">=</span> <span class="cn">TRUE</span>,</span>
+<span>  freeze <span class="op">=</span> <span class="cn">FALSE</span>,</span>
 <span>  <span class="va">...</span></span>
 <span><span class="op">)</span></span></code></pre></div>
     </div>
@@ -74,8 +76,10 @@ beside the table rather than inside it are picked up as well.</p>
 
 
 <dt id="arg-x">x<a class="anchor" aria-label="anchor" href="#arg-x"></a></dt>
-<dd><p>HTML: a string, a file path, or anything with an `as.character()`
-method that returns HTML.</p></dd>
+<dd><p>HTML: a string, a file path, an already parsed document, or
+anything with an `as.character()` method that returns HTML. That includes
+what `rvest` and `xml2` hand back, so a scraped page or a single
+`&lt;table&gt;` node can be passed straight in.</p></dd>
 
 
 <dt id="arg-sheet">sheet<a class="anchor" aria-label="anchor" href="#arg-sheet"></a></dt>
@@ -113,6 +117,21 @@ heading above it or a note below, and write them as merged rows. Set to
 `FALSE` to write the table on its own.</p></dd>
 
 
+<dt id="arg-features">features<a class="anchor" aria-label="anchor" href="#arg-features"></a></dt>
+<dd><p>What to write besides the values. `TRUE`, the default, is
+all of them; `FALSE` writes values only. Otherwise a character vector of
+any of `"font"`, `"fill"`, `"border"`, `"numfmt"`, `"merge"` and
+`"link"`. A page whose CSS or links go wrong in one respect can still be
+written in every other.</p></dd>
+
+
+<dt id="arg-freeze">freeze<a class="anchor" aria-label="anchor" href="#arg-freeze"></a></dt>
+<dd><p>Freeze panes so the header rows and any leading `&lt;th&gt;` column
+stay in view while scrolling. `TRUE` works them out from the table, a
+length-two vector `c(row, col)` freezes at a cell of your choosing, and
+`FALSE`, the default, leaves the sheet alone.</p></dd>
+
+
 <dt id="arg--">...<a class="anchor" aria-label="anchor" href="#arg--"></a></dt>
 <dd><p>Currently unused.</p></dd>
 
@@ -139,6 +158,11 @@ by walking its components against the cell and the elements above it, so
 Nested rules, `:is()`, custom properties and `!important` are handled, as
 are the positional pseudo-classes `:first-child`, `:last-child`,
 `:only-child` and `:nth-child()`.</p>
+<p>An `&lt;a href&gt;` inside a cell becomes a hyperlink on that cell, and the whole
+cell is what becomes clickable: a spreadsheet has no way to link part of a
+cell's text. The first usable anchor is taken, since a cell holds one
+target, and a link that only points at a fragment of the source page is
+skipped. Either of those produces a warning naming how many were dropped.</p>
 <p>What is not: sibling combinators (`+`, `~`), state pseudo-classes and
 `::before` cause a rule to be skipped rather than guessed at, attribute
 selectors match on the tag alone, `@media` conditions are ignored, and

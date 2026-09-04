@@ -13,7 +13,7 @@ block starting at `dims`."></head><body>
 
     <a class="navbar-brand me-2" href="../index.html">gtxlsx</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.3.0</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.3.0.9000</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -35,7 +35,7 @@ block starting at `dims`."></head><body>
   <main id="main" class="col-md-9"><div class="page-header">
 
       <h1>Write a gt table into a worksheet</h1>
-      <small class="dont-index">Source: <a href="https://github.com/JanMarvin/gtxlsx/blob/v0.3.0/R/wb_add_gt.R" class="external-link"><code>R/wb_add_gt.R</code></a></small>
+      <small class="dont-index">Source: <a href="https://github.com/JanMarvin/gtxlsx/blob/main/R/wb_add_gt.R" class="external-link"><code>R/wb_add_gt.R</code></a></small>
       <div class="d-none name"><code>wb_add_gt.Rd</code></div>
     </div>
 
@@ -58,6 +58,8 @@ block starting at `dims`.</p>
 <span>  row_heights <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  ignore_errors <span class="op">=</span> <span class="cn">TRUE</span>,</span>
 <span>  gap <span class="op">=</span> <span class="fl">1L</span>,</span>
+<span>  features <span class="op">=</span> <span class="cn">TRUE</span>,</span>
+<span>  freeze <span class="op">=</span> <span class="cn">FALSE</span>,</span>
 <span>  <span class="va">...</span></span>
 <span><span class="op">)</span></span></code></pre></div>
     </div>
@@ -114,6 +116,21 @@ date, so Excel stops showing the green warning triangle on them.</p></dd>
 a single table.</p></dd>
 
 
+<dt id="arg-features">features<a class="anchor" aria-label="anchor" href="#arg-features"></a></dt>
+<dd><p>What to write besides the values. `TRUE`, the default, is
+all of them; `FALSE` writes values only. Otherwise a character vector of
+any of `"font"`, `"fill"`, `"border"`, `"numfmt"`, `"merge"` and
+`"link"`, so a table that goes wrong in one respect can still be written
+in every other.</p></dd>
+
+
+<dt id="arg-freeze">freeze<a class="anchor" aria-label="anchor" href="#arg-freeze"></a></dt>
+<dd><p>Freeze panes so the heading and the stub stay in view while
+scrolling. `TRUE` freezes below the heading and beside the stub, a
+length-two vector `c(row, col)` freezes at a cell of your choosing, and
+`FALSE`, the default, leaves the sheet alone.</p></dd>
+
+
 <dt id="arg--">...<a class="anchor" aria-label="anchor" href="#arg--"></a></dt>
 <dd><p>Currently unused.</p></dd>
 
@@ -148,6 +165,13 @@ detached blocks rather than a continuous column.</p>
 <p>The colour comes from gt, and gt's default is white. On a worksheet with a
 coloured background that white will cover the tint under the table. Set
 `table.background.color` to match, or turn striping off, if that matters.</p>
+    </div>
+    <div class="section level2">
+    <h2 id="links">Links<a class="anchor" aria-label="anchor" href="#links"></a></h2>
+
+
+<p>`fmt_url()` and `fmt_email()` leave an anchor in the cell, and that becomes
+a hyperlink on the cell. The text shown is whatever `gt` put there.</p>
     </div>
     <div class="section level2">
     <h2 id="numbers-versus-text">Numbers versus text<a class="anchor" aria-label="anchor" href="#numbers-versus-text"></a></h2>
