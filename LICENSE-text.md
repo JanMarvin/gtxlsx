@@ -1,4 +1,4 @@
 # License
 
     YEAR: 2026
-    COPYRIGHT HOLDER: gtx authors
+    COPYRIGHT HOLDER: gtxlsx authors
