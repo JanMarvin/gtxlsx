@@ -20,8 +20,10 @@ wb_add_html(
 \arguments{
 \item{wb}{A `wbWorkbook` object.}
 
-\item{x}{HTML: a string, a file path, or anything with an `as.character()`
-method that returns HTML.}
+\item{x}{HTML: a string, a file path, an already parsed document, or
+anything with an `as.character()` method that returns HTML. That includes
+what `rvest` and `xml2` hand back, so a scraped page or a single
+`<table>` node can be passed straight in.}
 
 \item{sheet}{The worksheet to write to. Defaults to the current sheet.}
 
@@ -72,6 +74,12 @@ by walking its components against the cell and the elements above it, so
 Nested rules, `:is()`, custom properties and `!important` are handled, as
 are the positional pseudo-classes `:first-child`, `:last-child`,
 `:only-child` and `:nth-child()`.
+
+An `<a href>` inside a cell becomes a hyperlink on that cell, and the whole
+cell is what becomes clickable: a spreadsheet has no way to link part of a
+cell's text. The first usable anchor is taken, since a cell holds one
+target, and a link that only points at a fragment of the source page is
+skipped. Either of those produces a warning naming how many were dropped.
 
 What is not: sibling combinators (`+`, `~`), state pseudo-classes and
 `::before` cause a rule to be skipped rather than guessed at, attribute

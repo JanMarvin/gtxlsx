@@ -195,6 +195,31 @@ html_strip_fast <- function(x) {
   x
 }
 
+# Every href in a cell, in the order they appear, unescaped.
+html_hrefs <- function(x) {
+  if (is.na(x) || !grepl("<a ", x, fixed = TRUE)) return(character(0L))
+  pat <- paste0("<a\\b[^>]*\\bhref\\s*=\\s*", "(\"[^\"]*\"|'[^']*'|[^\\s>]+)")
+  hits <- regmatches(x, gregexpr(pat, x, perl = TRUE))[[1]]
+  out <- vapply(hits, function(hit) {
+    val <- trimws(sub("^.*?href\\s*=\\s*", "", hit, perl = TRUE))
+    q <- substr(val, 1L, 1L)
+    if (q %in% c("\"", "'")) val <- substr(val, 2L, nchar(val) - 1L)
+    html_unescape(trimws(val))
+  }, character(1L), USE.NAMES = FALSE)
+  out[nzchar(out)]
+}
+
+# An <a href> in a cell is a hyperlink in the sheet. Excel allows one target
+# per cell, so the first usable anchor wins. Anchors that only point at a
+# fragment of the page the table came from are passed over: a footnote marker
+# like <a href="#Footnote5"> is not a destination in a workbook, and skipping
+# it lets the real link in the same cell be found.
+html_href <- function(x) {
+  hs <- html_hrefs(x)
+  hs <- hs[!startsWith(hs, "#")]
+  if (!length(hs)) NA_character_ else hs[1L]
+}
+
 html_strip <- function(x) {
   out <- vapply(x, function(s) {
     if (is.na(s)) return(NA_character_)

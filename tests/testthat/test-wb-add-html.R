@@ -320,3 +320,121 @@ test_that("markup that is not well formed XML still parses", {
   expect_equal(df[1L, 1L], "a\nb")
   expect_equal(df[2L, 2L], "e")
 })
+
+test_that("an anchor in a cell becomes a hyperlink", {
+  html <- paste0("<table><tr>",
+                 "<td><a href=\"https://example.org/t\">Table 17-10-0005</a></td>",
+                 "<td><a href=\"#fn1\">1</a></td>",
+                 "<td><a href='mailto:a@b.org'>mail</a></td>",
+                 "<td>plain</td></tr></table>")
+  wb <- openxlsx2::wb_workbook()$add_worksheet()
+  wb <- wb_add_html(wb, html, dims = "A1")
+
+  # the anchor text is what the cell shows
+  df <- openxlsx2::wb_to_df(wb, col_names = FALSE)
+  expect_equal(as.character(df[1L, 1L]), "Table 17-10-0005")
+
+  links <- unlist(wb$worksheets[[1L]]$hyperlinks)
+  refs <- sub('.*ref="([A-Z]+[0-9]+)".*', "\\1", links)
+  # A1 and C1 get one; a bare page fragment and a plain cell do not
+  expect_setequal(refs, c("A1", "C1"))
+})
+
+test_that("hrefs are read whatever the quoting", {
+  expect_equal(html_href('<a href="https://x.org/a">t</a>'), "https://x.org/a")
+  expect_equal(html_href("<a class='c' href='https://y.org/b'>t</a>"),
+               "https://y.org/b")
+  # a bare page fragment is not a destination in a workbook
+  expect_true(is.na(html_href("<a href=#fn1>1</a>")))
+  expect_equal(html_href('<a href="https://z.org/?a=1&amp;b=2">t</a>'),
+               "https://z.org/?a=1&b=2")
+  expect_true(is.na(html_href("plain text")))
+  expect_true(is.na(html_href(NA_character_)))
+})
+
+test_that("anything that turns into HTML can be handed straight over", {
+  # What rvest and xml2 hand back is accepted because they carry an
+  # as.character() method, which is the contract this relies on. A stub with
+  # the same method exercises that path without depending on either.
+  page <- paste0("<html><body><h2>Report</h2><table>",
+                 "<tr><th>region</th><th>value</th></tr>",
+                 "<tr><td>north</td><td>1,204.50</td></tr></table></body></html>")
+  scraped <- structure(list(doc = page), class = "stub_html_node")
+  registerS3method("as.character", "stub_html_node",
+                   function(x, ...) x$doc, envir = environment())
+
+  wb <- openxlsx2::wb_workbook()$add_worksheet()
+  wb <- wb_add_html(wb, scraped, dims = "A1")
+  expect_equal(dim(openxlsx2::wb_to_df(wb, col_names = FALSE)), c(2L, 2L))
+
+  # and the document this package parses itself round trips the same way
+  wb2 <- openxlsx2::wb_workbook()$add_worksheet()
+  wb2 <- wb_add_html(wb2, html_parse(page), dims = "A1")
+  expect_equal(dim(openxlsx2::wb_to_df(wb2, col_names = FALSE)), c(2L, 2L))
+})
+
+test_that("a footnote anchor does not hide the real link beside it", {
+  # Statistics Canada puts a footnote marker and a map link in the same cell:
+  # the marker only points at a fragment of its own page, so the map wins
+  html <- paste0(
+    "<table><tr>",
+    "<th>Nunavut<sup><a href=\"#Footnote5\">5</a></sup> ",
+    "<a href=\"https://example.gc.ca/map?v={'a':['1']}&amp;b=2\">(map)</a></th>",
+    "<td>41,798</td></tr>",
+    "<tr><th>Yukon <a href=\"https://example.gc.ca/yk\">(map)</a></th>",
+    "<td>48,089</td></tr></table>"
+  )
+  wb <- openxlsx2::wb_workbook()$add_worksheet()
+  wb <- wb_add_html(wb, html, dims = "A1")
+
+  links <- unlist(wb$worksheets[[1L]]$hyperlinks)
+  expect_length(links, 2L)
+
+  targets <- sub('.*Target="([^"]*)".*', "\\1", unlist(wb$worksheets_rels[[1L]]))
+  expect_true(any(grepl("map?v=", targets, fixed = TRUE)))
+  expect_false(any(grepl("Footnote", targets, fixed = TRUE)))
+})
+
+test_that("rows without cells do not become blank sheet rows", {
+  html <- paste0("<table><tbody>",
+                 "<tr id=\"bufferRowTop\" style=\"height: 0px\"></tr>",
+                 "<tr><td>a</td></tr>",
+                 "<tr><td>b</td></tr>",
+                 "<tr id=\"bufferRowBottom\" style=\"height: 0px\"></tr>",
+                 "</tbody></table>")
+  wb <- openxlsx2::wb_workbook()$add_worksheet()
+  wb <- wb_add_html(wb, html, dims = "A1")
+
+  df <- openxlsx2::wb_to_df(wb, col_names = FALSE)
+  expect_equal(nrow(df), 2L)
+  expect_equal(as.character(df[[1L]]), c("a", "b"))
+
+  # a row whose cells are merely empty is still a row
+  wb2 <- openxlsx2::wb_workbook()$add_worksheet()
+  wb2 <- wb_add_html(wb2, "<table><tr><td>a</td></tr><tr><td></td></tr></table>",
+                     dims = "A1")
+  df2 <- openxlsx2::wb_to_df(wb2, col_names = FALSE)
+  expect_equal(nrow(df2), 2L)
+})
+
+test_that("links that cannot be written are reported once", {
+  # a cell can hold one hyperlink, so anything past the first is lost
+  two <- paste0("<table><tr><td>",
+                "<a href=\"https://a.org\">a</a> and <a href=\"https://b.org\">b</a>",
+                "</td></tr></table>")
+  wb <- openxlsx2::wb_workbook()$add_worksheet()
+  expect_warning(wb_add_html(wb, two, dims = "A1"), "one hyperlink")
+
+  # a link into the page the table came from has no destination in a workbook
+  frag <- paste0("<table><tr><td>Nunavut<a href=\"#Footnote5\">5</a> ",
+                 "<a href=\"https://a.org/map\">(map)</a></td></tr></table>")
+  wb2 <- openxlsx2::wb_workbook()$add_worksheet()
+  expect_warning(wb2 <- wb_add_html(wb2, frag, dims = "A1"), "source page")
+  # the usable link is still written
+  expect_length(unlist(wb2$worksheets[[1L]]$hyperlinks), 1L)
+
+  # one link, one cell, nothing to say
+  ok <- "<table><tr><td><a href=\"https://a.org\">a</a></td></tr></table>"
+  wb3 <- openxlsx2::wb_workbook()$add_worksheet()
+  expect_no_warning(wb_add_html(wb3, ok, dims = "A1"))
+})

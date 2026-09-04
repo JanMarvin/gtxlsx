@@ -419,11 +419,17 @@ shorthand_part <- function(x, what) {
 html_grid <- function(doc, tbl) {
   # only this table's own rows: "//tr" would descend into a nested table, and
   # the DOM order of tfoot is not its rendered order
+  # a <tr> with no cells is a spacer the page uses for layout; it carries
+  # nothing and would land as a blank row in the sheet
+  has_cells <- function(rows) {
+    rows[vapply(rows, function(r) length(nd_children(doc, r, c("td", "th"))) > 0L,
+                logical(1L))]
+  }
   sect <- function(tags) {
-    if (is.null(tags)) return(as.list(nd_children(doc, tbl, "tr")))
+    if (is.null(tags)) return(as.list(has_cells(nd_children(doc, tbl, "tr"))))
     out <- integer(0L)
     for (k in nd_children(doc, tbl, tags)) out <- c(out, nd_children(doc, k, "tr"))
-    as.list(out)
+    as.list(has_cells(out))
   }
   parts <- list(head = sect("thead"),
                 body = c(sect("tbody"), sect(NULL)),
@@ -584,6 +590,12 @@ node_ancestors <- function(doc, node) {
 #' are the positional pseudo-classes `:first-child`, `:last-child`,
 #' `:only-child` and `:nth-child()`.
 #'
+#' An `<a href>` inside a cell becomes a hyperlink on that cell, and the whole
+#' cell is what becomes clickable: a spreadsheet has no way to link part of a
+#' cell's text. The first usable anchor is taken, since a cell holds one
+#' target, and a link that only points at a fragment of the source page is
+#' skipped. Either of those produces a warning naming how many were dropped.
+#'
 #' What is not: sibling combinators (`+`, `~`), state pseudo-classes and
 #' `::before` cause a rule to be skipped rather than guessed at, attribute
 #' selectors match on the tag alone, `@media` conditions are ignored, and
@@ -594,8 +606,10 @@ node_ancestors <- function(doc, node) {
 #' `<a href>` keeps its text but not the link.
 #'
 #' @param wb A `wbWorkbook` object.
-#' @param x HTML: a string, a file path, or anything with an `as.character()`
-#'   method that returns HTML.
+#' @param x HTML: a string, a file path, an already parsed document, or
+#'   anything with an `as.character()` method that returns HTML. That includes
+#'   what `rvest` and `xml2` hand back, so a scraped page or a single
+#'   `<table>` node can be passed straight in.
 #' @param sheet The worksheet to write to. Defaults to the current sheet.
 #' @param dims Cell reference of the top left corner.
 #' @param which Which table in the document to write, when there is more than

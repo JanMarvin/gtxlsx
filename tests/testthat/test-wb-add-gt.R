@@ -277,9 +277,9 @@ test_that("gt_split output is written as a group", {
   wb <- openxlsx2::wb_workbook()$add_worksheet()
   wb <- wb_add_gt(wb, sp, dims = "A1")
 
-  # Take the expectation from what gt actually renders, not from the data it
-  # was handed: gt 1.3.0.9000 leaves the second table of a split with stub row
-  # numbers pointing past its own data, so its own HTML comes out empty too.
+  # Compare against what gt renders, not against the data it was handed: on
+  # gt 1.3.0 gt_split() leaves the later tables unable to render their own
+  # rows, and the sheet reproduces whatever gt built.
   tbls <- sp$gt_tbls
   n <- if (is.data.frame(tbls)) nrow(tbls) else length(tbls)
   want <- unlist(lapply(seq_len(n), function(i) {
@@ -291,4 +291,20 @@ test_that("gt_split output is written as a group", {
   expect_gt(n, 1L)
   expect_gt(length(want), 0L)
   expect_true(all(want %in% col))
+})
+
+test_that("fmt_url and fmt_email produce working links", {
+  skip_no_gt()
+  d <- data.frame(what = c("CRAN", "mail"),
+                  url = c("https://cran.r-project.org", "a@b.org"),
+                  stringsAsFactors = FALSE)
+  tbl <- gt::fmt_email(gt::fmt_url(gt::gt(d), columns = "url", rows = 1),
+                       columns = "url", rows = 2)
+
+  wb <- openxlsx2::wb_workbook()$add_worksheet()
+  wb <- wb_add_gt(wb, tbl, dims = "A1")
+
+  links <- unlist(wb$worksheets[[1L]]$hyperlinks)
+  refs <- sub('.*ref="([A-Z]+[0-9]+)".*', "\\1", links)
+  expect_setequal(refs, c("B2", "B3"))
 })

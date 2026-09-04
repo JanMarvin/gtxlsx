@@ -86,6 +86,12 @@ coloured background that white will cover the tint under the table. Set
 `table.background.color` to match, or turn striping off, if that matters.
 }
 
+\section{Links}{
+
+`fmt_url()` and `fmt_email()` leave an anchor in the cell, and that becomes
+a hyperlink on the cell. The text shown is whatever `gt` put there.
+}
+
 \section{Numbers versus text}{
 
 With `numeric = TRUE` a column is written as numbers whenever an Excel

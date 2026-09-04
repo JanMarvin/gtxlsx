@@ -11,6 +11,15 @@ cell_key <- function(row, col) paste0(row, "_", col)
 
 put_cell <- function(cc, row, col, text = NA_character_, ...) {
   args <- list(...)
+  if (is.null(args$link) && !is.na(text) && grepl("<a ", text, fixed = TRUE)) {
+    hs <- html_hrefs(text)
+    usable <- hs[!startsWith(hs, "#")]
+    args$link <- if (length(usable)) usable[1L] else NA_character_
+    # a cell can hold one target, so anything past the first is lost, and a
+    # link into the source page cannot be followed from a workbook at all
+    args$link_extra <- max(0L, length(usable) - 1L)
+    args$link_inpage <- sum(startsWith(hs, "#"))
+  }
   cc$n <- cc$n + 1L
   if (cc$n > length(cc$rec)) length(cc$rec) <- 2L * length(cc$rec)
   cc$rec[[cc$n]] <- c(list(row = row, col = col, text = text), args)
@@ -272,6 +281,19 @@ render_cells <- function(wb, sheet, cc, theme) {
     }
   }
 
+  # Hyperlinks go on last: openxlsx2 needs the cell to exist first.
+  extra <- 0L
+  inpage <- 0L
+  for (i in seq_len(nr)) {
+    r <- recs[[i]]
+    extra <- extra + (r$link_extra %||% 0L)
+    inpage <- inpage + (r$link_inpage %||% 0L)
+    lk <- r$link
+    if (is.null(lk) || is.na(lk)) next
+    wb$add_hyperlink(sheet = sheet, dims = refs[i], target = lk)
+  }
+  warn_links(extra, inpage)
+
   # Excel only flags text that it would rather have seen as a number or date,
   # so only those cells need an ignoredError entry
   looks_numeric <- function(x) {
@@ -296,4 +318,24 @@ render_cells <- function(wb, sheet, cc, theme) {
   }
 
   invisible(flag)
+}
+
+# Said once per table rather than once per cell.
+warn_links <- function(extra, inpage) {
+  msg <- character(0L)
+  if (extra > 0L) {
+    plural <- if (extra == 1L) "link was" else "links were"
+    msg <- c(msg,
+             sprintf("%d further %s dropped: a cell can hold one hyperlink",
+                     extra, plural))
+  }
+  if (inpage > 0L) {
+    plural <- if (inpage == 1L) "link" else "links"
+    msg <- c(msg,
+             sprintf(paste("%d %s into the source page dropped:",
+                           "nothing in a workbook to point at"),
+                     inpage, plural))
+  }
+  if (length(msg)) warning(paste(msg, collapse = "; "), call. = FALSE)
+  invisible(NULL)
 }
