@@ -7,7 +7,7 @@
 ## Citation
 
 Source:
-[`DESCRIPTION`](https://github.com/JanMarvin/gtxlsx/blob/main/DESCRIPTION)
+[`DESCRIPTION`](https://github.com/JanMarvin/gtxlsx/blob/v0.3.0/DESCRIPTION)
 
 Garbuszus J (2026). *gtxlsx: Write 'gt' and HTML Tables into 'openxlsx2'
 Workbooks*. R package version 0.3.0,
