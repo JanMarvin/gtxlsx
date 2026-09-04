@@ -58,6 +58,15 @@
 #'   vector sets the heights directly. Both also centre the text vertically,
 #'   since Excel aligns to the bottom of a cell and gt pads evenly. Rows with
 #'   wrapped text keep Excel's sizing, which a fixed height would clip.
+#' @param features What to write besides the values. `TRUE`, the default, is
+#'   all of them; `FALSE` writes values only. Otherwise a character vector of
+#'   any of `"font"`, `"fill"`, `"border"`, `"numfmt"`, `"merge"` and
+#'   `"link"`, so a table that goes wrong in one respect can still be written
+#'   in every other.
+#' @param freeze Freeze panes so the heading and the stub stay in view while
+#'   scrolling. `TRUE` freezes below the heading and beside the stub, a
+#'   length-two vector `c(row, col)` freezes at a cell of your choosing, and
+#'   `FALSE`, the default, leaves the sheet alone.
 #' @param gap Blank rows left between the tables of a `gt_group`. Ignored for
 #'   a single table.
 #' @param ignore_errors Mark text cells whose content looks like a number or a
@@ -86,7 +95,8 @@
 #' @export
 wb_add_gt <- function(wb, x, sheet = current_sheet(), dims = "A1",
                       numeric = TRUE, col_widths = "auto", row_heights = NULL,
-                      ignore_errors = TRUE, gap = 1L, ...) {
+                      ignore_errors = TRUE, gap = 1L, features = TRUE,
+                      freeze = FALSE, ...) {
   if (!inherits(wb, "wbWorkbook")) {
     stop("`wb` must be a 'wbWorkbook' object", call. = FALSE)
   }
@@ -115,8 +125,11 @@ wb_add_gt <- function(wb, x, sheet = current_sheet(), dims = "A1",
   gtxlsx_apply_styles(cc, g, th, p)
 
   if (!is.null(row_heights)) th$valign <- "center"
-  flagged <- render_cells(wb, sheet, cc, th)
-  gtxlsx_borders(wb, sheet, cc, g, th, p, cols)
+  features <- check_features(features)
+  flagged <- render_cells(wb, sheet, cc, th, features)
+  if ("border" %in% features) gtxlsx_borders(wb, sheet, cc, g, th, p, cols)
+  freeze_at(wb, sheet, freeze, p$body_row[1L],
+            if (length(p$stub_vars)) max(p$col_of(p$stub_vars)) + 1L else p$col0)
   gtxlsx_col_widths(wb, sheet, g, th, p, col_widths)
   gtxlsx_row_heights(wb, sheet, cc, th, p, row_heights)
 

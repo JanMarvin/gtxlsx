@@ -14,6 +14,8 @@ wb_add_gt(
   row_heights = NULL,
   ignore_errors = TRUE,
   gap = 1L,
+  features = TRUE,
+  freeze = FALSE,
   ...
 )
 }
@@ -47,6 +49,17 @@ date, so Excel stops showing the green warning triangle on them.}
 
 \item{gap}{Blank rows left between the tables of a `gt_group`. Ignored for
 a single table.}
+
+\item{features}{What to write besides the values. `TRUE`, the default, is
+all of them; `FALSE` writes values only. Otherwise a character vector of
+any of `"font"`, `"fill"`, `"border"`, `"numfmt"`, `"merge"` and
+`"link"`, so a table that goes wrong in one respect can still be written
+in every other.}
+
+\item{freeze}{Freeze panes so the heading and the stub stay in view while
+scrolling. `TRUE` freezes below the heading and beside the stub, a
+length-two vector `c(row, col)` freezes at a cell of your choosing, and
+`FALSE`, the default, leaves the sheet alone.}
 
 \item{...}{Currently unused.}
 }

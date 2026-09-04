@@ -482,8 +482,15 @@ html_grid <- function(doc, tbl) {
     }
   }
   cells <- cells[seq_len(nc)]
+  head_rows <- sum(sec == "head")
+  # a leading column of <th> is a stub, the way gt's row labels are
+  first_col <- vapply(cells, function(z) z$col == 1L, logical(1L))
+  head_tags <- vapply(cells[first_col], function(z) identical(z$tag, "th"),
+                      logical(1L))
+  stub_cols <- if (any(first_col) && all(head_tags)) 1L else 0L
   used <- vapply(cells, function(z) z$col + z$colspan - 1L, integer(1L))
   list(cells = cells, nrow = n, ncol = if (length(used)) max(used) else 0L,
+       head_rows = head_rows, stub_cols = stub_cols,
        cols = c(unlist(lapply(nd_children(doc, tbl, "colgroup"),
                               function(k) nd_children(doc, k, "col"))),
                 nd_children(doc, tbl, "col")))
@@ -621,6 +628,15 @@ node_ancestors <- function(doc, node) {
 #'   the widths directly, `NULL` leaves them alone.
 #' @param ignore_errors Mark text cells that look numeric, so Excel does not
 #'   flag them.
+#' @param features What to write besides the values. `TRUE`, the default, is
+#'   all of them; `FALSE` writes values only. Otherwise a character vector of
+#'   any of `"font"`, `"fill"`, `"border"`, `"numfmt"`, `"merge"` and
+#'   `"link"`. A page whose CSS or links go wrong in one respect can still be
+#'   written in every other.
+#' @param freeze Freeze panes so the header rows and any leading `<th>` column
+#'   stay in view while scrolling. `TRUE` works them out from the table, a
+#'   length-two vector `c(row, col)` freezes at a cell of your choosing, and
+#'   `FALSE`, the default, leaves the sheet alone.
 #' @param context Pick up block elements sitting beside the table, such as a
 #'   heading above it or a note below, and write them as merged rows. Set to
 #'   `FALSE` to write the table on its own.
@@ -648,7 +664,8 @@ node_ancestors <- function(doc, node) {
 #' @export
 wb_add_html <- function(wb, x, sheet = current_sheet(), dims = "A1", which = 1L,
                         numeric = TRUE, col_widths = "auto",
-                        ignore_errors = TRUE, context = TRUE, ...) {
+                        ignore_errors = TRUE, context = TRUE, features = TRUE,
+                        freeze = FALSE, ...) {
   if (!inherits(wb, "wbWorkbook")) {
     stop("`wb` must be a 'wbWorkbook' object", call. = FALSE)
   }
@@ -984,9 +1001,11 @@ wb_add_html <- function(wb, x, sheet = current_sheet(), dims = "A1", which = 1L,
     }
   }
 
-  flagged <- render_cells(wb, sheet, cc, theme)
+  features <- check_features(features)
+  flagged <- render_cells(wb, sheet, cc, theme, features)
 
-  apply_borders(wb, sheet, cc$borders)
+  if ("border" %in% features) apply_borders(wb, sheet, cc$borders)
+  freeze_at(wb, sheet, freeze, row0 + g$head_rows, col0 + g$stub_cols)
 
   if (!is.null(col_widths)) {
     cols <- col0 - 1L + seq_len(g$ncol)

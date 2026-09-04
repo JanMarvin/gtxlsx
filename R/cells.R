@@ -140,7 +140,20 @@ chunked <- function(idx, size = 1000L) {
   split(idx, ceiling(seq_along(idx) / size))
 }
 
-render_cells <- function(wb, sheet, cc, theme) {
+all_features <- c("font", "fill", "border", "numfmt", "merge", "link")
+
+check_features <- function(features) {
+  if (isTRUE(features)) return(all_features)
+  if (isFALSE(features) || is.null(features)) return(character(0L))
+  bad <- setdiff(features, all_features)
+  if (length(bad)) {
+    stop("unknown feature: ", paste(bad, collapse = ", "),
+         ". Available: ", paste(all_features, collapse = ", "), call. = FALSE)
+  }
+  features
+}
+
+render_cells <- function(wb, sheet, cc, theme, features = all_features) {
   recs <- merge_records(collect_cells(cc))
   if (!length(recs)) return(invisible(NULL))
 
@@ -221,8 +234,13 @@ render_cells <- function(wb, sheet, cc, theme) {
   # One call per distinct style. Handing the cells over as ranges rather than
   # chunked ref lists was measured and is slower: openxlsx2 expands a range to
   # its cells either way, so the ref list costs nothing extra.
-  for (idx in group_by_sig(recs, c("font", "size", "color", "bold", "italic",
-                                   "underline", "strike"), sigs)) {
+  font_groups <- if ("font" %in% features) {
+    group_by_sig(recs, c("font", "size", "color", "bold", "italic",
+                         "underline", "strike"), sigs)
+  } else {
+    list()
+  }
+  for (idx in font_groups) {
     r <- recs[[idx[1L]]]
     for (part in chunked(idx)) {
       wb$add_font(
@@ -239,7 +257,11 @@ render_cells <- function(wb, sheet, cc, theme) {
     }
   }
 
-  filled <- which(vapply(recs, function(r) !is.null(fld(r, "fill")), logical(1L)))
+  filled <- if ("fill" %in% features) {
+    which(vapply(recs, function(r) !is.null(fld(r, "fill")), logical(1L)))
+  } else {
+    integer(0L)
+  }
   if (length(filled)) {
     for (idx in group_by_sig(recs[filled], "fill", sigs[filled])) {
       sub <- filled[idx]
@@ -274,6 +296,7 @@ render_cells <- function(wb, sheet, cc, theme) {
     }
   }
 
+  if (!"numfmt" %in% features) nfmt[] <- NA_character_
   for (f in unique(nfmt[!is.na(nfmt)])) {
     idx <- which(!is.na(nfmt) & nfmt == f)
     for (part in chunked(idx)) {
@@ -284,7 +307,7 @@ render_cells <- function(wb, sheet, cc, theme) {
   # Hyperlinks go on last: openxlsx2 needs the cell to exist first.
   extra <- 0L
   inpage <- 0L
-  for (i in seq_len(nr)) {
+  for (i in if ("link" %in% features) seq_len(nr) else integer(0L)) {
     r <- recs[[i]]
     extra <- extra + (r$link_extra %||% 0L)
     inpage <- inpage + (r$link_inpage %||% 0L)
@@ -312,7 +335,7 @@ render_cells <- function(wb, sheet, cc, theme) {
     flag <- ref_runs(rows[sel], cols[sel])
   }
 
-  for (m in cc$merges) {
+  for (m in if ("merge" %in% features) cc$merges else list()) {
     if (length(m$rows) * length(m$cols) < 2L) next
     wb$merge_cells(sheet = sheet, dims = openxlsx2::wb_dims(rows = m$rows, cols = m$cols))
   }
@@ -337,5 +360,23 @@ warn_links <- function(extra, inpage) {
                      inpage, plural))
   }
   if (length(msg)) warning(paste(msg, collapse = "; "), call. = FALSE)
+  invisible(NULL)
+}
+
+# Freeze so that everything above and to the left of a cell stays in view.
+freeze_at <- function(wb, sheet, freeze, first_body_row, first_data_col) {
+  if (isFALSE(freeze) || is.null(freeze)) return(invisible(NULL))
+  if (isTRUE(freeze)) {
+    row <- first_body_row
+    col <- first_data_col
+  } else {
+    if (length(freeze) != 2L) {
+      stop("`freeze` must be TRUE, FALSE, or c(row, col)", call. = FALSE)
+    }
+    row <- as.integer(freeze[[1L]])
+    col <- as.integer(freeze[[2L]])
+  }
+  if (is.na(row) || is.na(col)) return(invisible(NULL))
+  wb$freeze_pane(sheet = sheet, first_active_row = row, first_active_col = col)
   invisible(NULL)
 }

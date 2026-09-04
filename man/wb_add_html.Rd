@@ -14,6 +14,8 @@ wb_add_html(
   col_widths = "auto",
   ignore_errors = TRUE,
   context = TRUE,
+  features = TRUE,
+  freeze = FALSE,
   ...
 )
 }
@@ -45,6 +47,17 @@ flag them.}
 \item{context}{Pick up block elements sitting beside the table, such as a
 heading above it or a note below, and write them as merged rows. Set to
 `FALSE` to write the table on its own.}
+
+\item{features}{What to write besides the values. `TRUE`, the default, is
+all of them; `FALSE` writes values only. Otherwise a character vector of
+any of `"font"`, `"fill"`, `"border"`, `"numfmt"`, `"merge"` and
+`"link"`. A page whose CSS or links go wrong in one respect can still be
+written in every other.}
+
+\item{freeze}{Freeze panes so the header rows and any leading `<th>` column
+stay in view while scrolling. `TRUE` works them out from the table, a
+length-two vector `c(row, col)` freezes at a cell of your choosing, and
+`FALSE`, the default, leaves the sheet alone.}
 
 \item{...}{Currently unused.}
 }

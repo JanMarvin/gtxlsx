@@ -328,7 +328,8 @@ test_that("an anchor in a cell becomes a hyperlink", {
                  "<td><a href='mailto:a@b.org'>mail</a></td>",
                  "<td>plain</td></tr></table>")
   wb <- openxlsx2::wb_workbook()$add_worksheet()
-  wb <- wb_add_html(wb, html, dims = "A1")
+  # the page fragment is reported, as it cannot be followed from a workbook
+  expect_warning(wb <- wb_add_html(wb, html, dims = "A1"), "source page")
 
   # the anchor text is what the cell shows
   df <- openxlsx2::wb_to_df(wb, col_names = FALSE)
@@ -385,7 +386,7 @@ test_that("a footnote anchor does not hide the real link beside it", {
     "<td>48,089</td></tr></table>"
   )
   wb <- openxlsx2::wb_workbook()$add_worksheet()
-  wb <- wb_add_html(wb, html, dims = "A1")
+  expect_warning(wb <- wb_add_html(wb, html, dims = "A1"), "source page")
 
   links <- unlist(wb$worksheets[[1L]]$hyperlinks)
   expect_length(links, 2L)

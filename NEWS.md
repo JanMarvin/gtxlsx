@@ -11,6 +11,15 @@
 * A `<tr>` with no cells is a spacer the page uses for layout, and no longer
   lands as a blank row in the sheet.
 
+* New `features` argument on `wb_add_gt()` and `wb_add_html()` decides what is
+  written besides the values: any of `"font"`, `"fill"`, `"border"`,
+  `"numfmt"`, `"merge"` and `"link"`. `FALSE` writes values only, so a table
+  that goes wrong in one respect can still be written in every other.
+
+* New `freeze` argument keeps the heading and the stub in view while
+  scrolling. `TRUE` works the split out from the table, `c(row, col)` puts it
+  where you say.
+
 * Links that cannot be written are reported: a warning names how many were
   dropped because a cell already had one, and how many pointed only into the
   source page.
