@@ -4,6 +4,9 @@
 
 test_that("data_color fills and its contrast text colour both survive", {
   skip_no_gt()
+  skip_no_gt_fn("data_color")
+  skip_if_gt_cannot(gt::data_color(gt::gt(data.frame(v = 1:2)), columns = "v",
+                                   palette = c("#FFFFFF", "#FF0000")))
   d <- data.frame(k = c("a", "b", "c", "d"), v = c(1, 40, 70, 100),
                   stringsAsFactors = FALSE)
   tbl <- gt::data_color(gt::gt(d, rowname_col = "k"), columns = "v",
@@ -50,6 +53,7 @@ test_that("the last style wins where two target the same cell", {
 
 test_that("opt_stylize keeps its per region colours", {
   skip_no_gt()
+  skip_no_gt_fn("opt_stylize")
   d <- data.frame(g = c("A", "A", "B"), k = c("r1", "r2", "r3"), v = 1:3,
                   stringsAsFactors = FALSE)
   tbl <- gt::opt_stylize(gt::gt(d, rowname_col = "k", groupname_col = "g"),

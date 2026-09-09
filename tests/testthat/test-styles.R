@@ -31,6 +31,20 @@ test_that("cell_borders become per side entries", {
 
 test_that("every style location maps onto cells", {
   skip_no_gt()
+  skip_no_gt_fn("grand_summary_rows")
+  # cells_summary() defaulted its rows through a selecting path older gt
+  # cannot resolve, and gt applies locations lazily, so the probe must build
+  # cells_summary() resolves its rows through a selecting path older gt
+  # cannot follow, and it raises as the style is attached, so the whole
+  # construction has to sit inside the probe
+  skip_if_gt_cannot({
+    p0 <- gt::gt(data.frame(g = c("A", "A", "B"), r = paste0("r", 1:3),
+                            v = c(1, 2, 3), stringsAsFactors = FALSE),
+                 rowname_col = "r", groupname_col = "g")
+    p0 <- gt::summary_rows(p0, columns = "v", fns = list(tot = ~ sum(.x)))
+    gt::tab_style(p0, gt::cell_fill(color = "yellow"),
+                  gt::cells_summary(groups = "A", columns = "v"))
+  })
   d <- data.frame(g = c("A", "A", "B"), r = paste0("r", 1:3), v = c(1, 2, 3),
                   stringsAsFactors = FALSE)
   tbl <- gt::gt(d, rowname_col = "r", groupname_col = "g")

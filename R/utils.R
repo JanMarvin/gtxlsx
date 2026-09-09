@@ -17,7 +17,60 @@ gt_build_data <- function(x, context = "html") {
          "please report it at https://github.com/JanMarvin/gtxlsx/issues",
          call. = FALSE)
   }
-  fun(data = x, context = context)
+  built <- fun(data = x, context = context)
+  check_built(built)
+}
+
+# The components read out of a built gt table. Checked at run time, not only
+# in the tests, so that a gt release which moves one of them produces a clear
+# error here rather than a wrong sheet somewhere downstream.
+# _source_notes is left out on purpose: gt adds it only once a table has one.
+built_parts <- c("_body", "_boxhead", "_data", "_footnotes", "_groups_rows",
+                 "_heading", "_options", "_row_groups", "_spanners",
+                 "_stub_df", "_stubhead", "_styles", "_summary_build")
+
+# The columns read out of those components. A rename here would otherwise
+# surface as a sheet full of NA rather than as an error.
+built_cols <- list(
+  `_boxhead` = c("var", "type", "column_label", "column_align"),
+  `_stub_df` = c("rownum_i", "group_id"),
+  `_spanners` = c("vars", "spanner_level", "spanner_id"),
+  `_row_groups` = character(0L),
+  `_styles` = c("locname", "colname", "rownum", "styles")
+)
+
+check_built <- function(built) {
+  missing <- setdiff(built_parts, names(built))
+  if (length(missing)) {
+    stop("gtxlsx cannot read this version of 'gt' (",
+         as.character(utils::packageVersion("gt")), "): ",
+         "the built table has no ", paste(missing, collapse = ", "), ". ",
+         "This is a gtxlsx problem, not a problem with your table or with any ",
+         "package that called it. Please report it at ",
+         "https://github.com/JanMarvin/gtxlsx/issues",
+         call. = FALSE)
+  }
+
+  for (part in names(built_cols)) {
+    want <- built_cols[[part]]
+    if (!length(want)) next
+    # An empty component is never read from, so its columns do not matter. A
+    # gt old enough to lack one of them still works on tables that do not use
+    # the feature, and is refused on the tables that do.
+    if (!NROW(built[[part]])) next
+    have <- names(built[[part]])
+    if (is.null(have)) next
+    gone <- setdiff(want, have)
+    if (length(gone)) {
+      stop("gtxlsx cannot read this version of 'gt' (",
+           as.character(utils::packageVersion("gt")), "): ",
+           part, " has no column ", paste(gone, collapse = ", "), ". ",
+           "This is a gtxlsx problem, not a problem with your table or with ",
+           "any package that called it. Please report it at ",
+           "https://github.com/JanMarvin/gtxlsx/issues", call. = FALSE)
+    }
+  }
+  built
 }
 
 # Footnote and source note text may be plain, an md() object or an html()
@@ -53,11 +106,32 @@ fmt_txt_safe <- function(x, ...) {
           c(list(x = x), known_args(openxlsx2::fmt_txt, list(...))))
 }
 
+# Every tab_options() name this package reads is looked up here, so this is
+# also where a name gt has renamed shows up. Rather than keep a second list of
+# the names in sync by hand, the misses are collected as they happen and
+# reported once. All of them exist in gt 1.1.0 and in 1.3.0.9000, so a miss
+# means gt moved something rather than that the option is merely newer.
+opt_missed <- new.env(parent = emptyenv())
+
 opt_val <- function(ops, parameter) {
   i <- match(parameter, ops$parameter)
-  if (is.na(i)) return(NULL)
+  if (is.na(i)) {
+    opt_missed[[parameter]] <- TRUE
+    return(NULL)
+  }
   v <- ops$value[[i]]
   if (length(v) == 0L) NULL else v
+}
+
+# Called once per table, after the options have been read.
+report_missed_options <- function() {
+  gone <- ls(opt_missed)
+  rm(list = gone, envir = opt_missed)
+  if (!length(gone)) return(invisible(NULL))
+  warning("this version of 'gt' has no option ", paste(gone, collapse = ", "),
+          ", so the corresponding formatting was left out. Please report it ",
+          "at https://github.com/JanMarvin/gtxlsx/issues", call. = FALSE)
+  invisible(NULL)
 }
 
 opt_chr <- function(ops, parameter, default = NA_character_) {

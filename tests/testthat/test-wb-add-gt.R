@@ -176,6 +176,7 @@ test_that("row groups as a column merge downwards", {
 
 test_that("striping, indentation and hidden columns are handled", {
   skip_no_gt()
+  skip_no_gt_fn("tab_stub_indent")
   tbl <- gt::opt_row_striping(small_gt())
   tbl <- gt::tab_stub_indent(tbl, rows = 2, indent = 3)
   tbl <- gt::cols_hide(tbl, columns = "p")
@@ -213,6 +214,9 @@ test_that("a footnote on the title is marked", {
 
 test_that("per cell fills are not collapsed onto the whole column", {
   skip_no_gt()
+  skip_no_gt_fn("data_color")
+  skip_if_gt_cannot(gt::data_color(gt::gt(data.frame(v = 1:2)), columns = "v",
+                                   palette = c("#FFFFFF", "#FF0000")))
   d <- data.frame(a = c("w", "x", "y", "z"), v = c(1, 2, 3, 4),
                   stringsAsFactors = FALSE)
   tbl <- gt::gt(d, rowname_col = "a")
@@ -243,6 +247,7 @@ test_that("a tab_style fill on one row stays on that row", {
 
 test_that("a gt_group is written one table after another", {
   skip_no_gt()
+  skip_no_gt_fn("gt_group")
   grp <- gt::gt_group(
     gt::tab_header(gt::gt(data.frame(a = c("x", "y"))), title = "First"),
     gt::tab_header(gt::gt(data.frame(a = c("p", "q", "r"))), title = "Second")
@@ -258,6 +263,7 @@ test_that("a gt_group is written one table after another", {
 
 test_that("gap controls the space between grouped tables", {
   skip_no_gt()
+  skip_no_gt_fn("gt_group")
   grp <- gt::gt_group(gt::gt(data.frame(a = "x")), gt::gt(data.frame(a = "y")))
 
   tight <- wb_add_gt(openxlsx2::wb_workbook()$add_worksheet(), grp,
@@ -271,6 +277,7 @@ test_that("gap controls the space between grouped tables", {
 
 test_that("gt_split output is written as a group", {
   skip_no_gt()
+  skip_no_gt_fn("gt_split")
   d <- data.frame(a = paste0("r", 1:6), stringsAsFactors = FALSE)
   sp <- gt::gt_split(gt::gt(d), row_every_n = 3)
 
@@ -295,6 +302,9 @@ test_that("gt_split output is written as a group", {
 
 test_that("fmt_url and fmt_email produce working links", {
   skip_no_gt()
+  # fmt_email() arrived after gt 0.10
+  skip_if_not("fmt_email" %in% getNamespaceExports("gt"),
+              "this gt has no fmt_email()")
   d <- data.frame(what = c("CRAN", "mail"),
                   url = c("https://cran.r-project.org", "a@b.org"),
                   stringsAsFactors = FALSE)

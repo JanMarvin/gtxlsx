@@ -11,6 +11,7 @@ test_that("the default theme matches gt's stylesheet region by region", {
 
 test_that("opt_stylize colours and weights match gt's stylesheet", {
   skip_no_gt()
+  skip_no_gt_fn("opt_stylize")
   expect_css_matches_gt(gt::opt_stylize(full_tbl(), style = 3, color = "blue"))
 })
 
@@ -93,6 +94,7 @@ test_that("opt_table_lines(\"all\") gives the column labels vertical lines", {
 
 test_that("every themed variant agrees with gt's stylesheet", {
   skip_no_gt()
+  skip_no_gt_fn("opt_stylize")
   variants <- list(
     gt::opt_stylize(full_tbl(), style = 2, color = "green"),
     gt::opt_stylize(full_tbl(), style = 6, color = "gray"),

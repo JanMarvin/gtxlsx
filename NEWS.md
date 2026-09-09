@@ -11,6 +11,13 @@
 * A `<tr>` with no cells is a spacer the page uses for layout, and no longer
   lands as a blank row in the sheet.
 
+* A gt release that moves the internals this package reads now produces a
+  clear error naming the gt version and what is missing, rather than a wrong
+  sheet. That covers renamed columns inside the components, and a style
+  location or a `tab_options()` name gt no longer has is reported rather than
+  dropped. The message says plainly that it is a gtxlsx problem, so anyone
+  building on this package can forward it.
+
 * New `features` argument on `wb_add_gt()` and `wb_add_html()` decides what is
   written besides the values: any of `"font"`, `"fill"`, `"border"`,
   `"numfmt"`, `"merge"` and `"link"`. `FALSE` writes values only, so a table
@@ -27,6 +34,10 @@
 * `wb_add_html()` accepts anything with an `as.character()` method that
   returns HTML, so what `rvest` and `xml2` hand back can be passed straight
   in: a whole page or a single `<table>` node.
+
+* The declared minimum for `gt` is now 0.8.0, which is where the suite still
+  passes. Tests that need a `gt` feature added later skip on the feature
+  rather than on a version number.
 
 # gtxlsx 0.3.0
 
@@ -46,10 +57,10 @@
 * `wb_add_gt()` takes a `gt_group()` or `gt_split()` object and writes the
   tables one after another, spaced by `gap`.
 
-* Works with `gt` 1.1.0 through 1.3.0.9000. On a multi-column stub, gt records
-  `cells_stub()` styles under a different location name; that is handled now.
-  Values printed without a leading zero, as `drop_leading_zero` gives, stay
-  numbers.
+* Works with `gt` 0.10.0 through 1.3.0.9000. On a multi-column stub, gt
+  records `cells_stub()` styles under a different location name; that is
+  handled now. Values printed without a leading zero, as `drop_leading_zero`
+  gives, stay numbers.
 
 * Minimum R version is 3.6.0. Nothing in the package needed 4.1.
 

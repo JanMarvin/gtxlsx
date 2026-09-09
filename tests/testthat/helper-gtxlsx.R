@@ -1,5 +1,28 @@
 skip_no_gt <- function() testthat::skip_if_not_installed("gt")
 
+# Some gt functions exist but took different arguments in older releases, and
+# some accepted tidyselect where earlier ones did not. Trying the call is the
+# only honest test of whether this gt can express what the test needs.
+skip_if_gt_cannot <- function(expr) {
+  ok <- tryCatch({
+    force(expr)
+    TRUE
+  }, error = function(e) FALSE)
+  if (!ok) testthat::skip("this gt cannot express what the test needs")
+}
+
+# Some tests need a gt feature rather than gt itself. Skipping on the export
+# keeps them meaningful on an old gt instead of failing for want of a
+# function that did not exist yet.
+skip_no_gt_fn <- function(...) {
+  fns <- c(...)
+  have <- getNamespaceExports("gt")
+  gone <- setdiff(fns, have)
+  if (length(gone)) {
+    testthat::skip(paste("this gt has no", paste(gone, collapse = ", ")))
+  }
+}
+
 small_gt <- function() {
   gt::gt(data.frame(
     item = c("alpha", "beta", "gamma"),

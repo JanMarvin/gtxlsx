@@ -137,13 +137,25 @@ style_targets <- function(row, g, p) {
   )
 }
 
+# Every location gt can put a style on. A name outside this set means gt has
+# added or renamed one, which would otherwise drop the style silently.
+known_locnames <- c("title", "subtitle", "stubhead", "columns_columns",
+                    "columns_groups", "row_groups", "data", "stub_column",
+                    "stub", "summary_cells", "grand_summary_cells",
+                    "footnotes", "source_notes")
+
 gtxlsx_apply_styles <- function(cc, g, th, p) {
   styles <- g$styles
   cc$borders <- list()
   if (is.null(styles) || !nrow(styles)) return(invisible(NULL))
 
+  unknown <- character(0L)
   for (i in seq_len(nrow(styles))) {
     row <- as.list(styles[i, ])
+    if (!row$locname %in% known_locnames) {
+      unknown <- c(unknown, row$locname)
+      next
+    }
     tgt <- style_targets(row, g, p)
     if (is.null(tgt)) next
     st <- styles$styles[[i]]
@@ -165,6 +177,13 @@ gtxlsx_apply_styles <- function(cc, g, th, p) {
         list(rows = tgt$rows, cols = tgt$cols, side = b$side,
              border = b$border, color = b$color)
     }
+  }
+
+  if (length(unknown)) {
+    warning("style location ", paste(unique(unknown), collapse = ", "),
+            " is not one gtxlsx knows, so those styles were not written. ",
+            "This usually means 'gt' has added a location; please report it ",
+            "at https://github.com/JanMarvin/gtxlsx/issues", call. = FALSE)
   }
   invisible(NULL)
 }

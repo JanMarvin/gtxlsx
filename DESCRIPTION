@@ -23,7 +23,7 @@ Imports:
     openxlsx2 (>= 1.0),
     utils
 Suggests:
-    gt (>= 0.10.0),
+    gt (>= 0.8.0),
     lt,
     markdown,
     testthat (>= 3.0.0)

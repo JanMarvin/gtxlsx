@@ -78,9 +78,86 @@ test_that("markdown renders the same runs gt would produce", {
   keep <- function(r) {
     lapply(r, function(z) z[c("text", "bold", "italic", "strike", "vert_align")])
   }
+  # gt swapped its markdown engine along the way; before that its runs differ
+  # from ours, which is gt changing rather than this package drifting
+  skip_if_gt_cannot(stopifnot(identical(
+    keep(html_runs(render_md(gt::md("sup^2^")))),
+    keep(html_runs(as.character(pt(gt::md("sup^2^"), context = "html"))))
+  )))
+
   for (x in c("**b** and _i_", "a & b", "`code`", "sup^2^ and ~sub~", "*i*")) {
     expect_equal(keep(html_runs(render_md(gt::md(x)))),
                  keep(html_runs(as.character(pt(gt::md(x), context = "html")))),
                  info = x)
   }
+})
+
+test_that("a gt whose internals moved is refused, not guessed at", {
+  skip_no_gt()
+  msg <- tryCatch(check_built(list(`_body` = 1)), error = conditionMessage)
+  expect_match(msg, "cannot read this version of 'gt'")
+  expect_match(msg, "not a problem with your table")
+  expect_match(msg, "github.com/JanMarvin/gtxlsx/issues", fixed = TRUE)
+  # names what is missing, so the report says something useful
+  expect_match(msg, "_boxhead")
+})
+
+test_that("the guard passes on tables with and without the optional parts", {
+  skip_no_gt()
+  # _source_notes only exists once a table has one, so it is not required
+  expect_silent(gt_build_data(gt::gt(head(gt::exibble, 2))))
+  expect_silent(
+    gt_build_data(gt::tab_source_note(gt::gt(head(gt::exibble, 2)), "s"))
+  )
+})
+
+test_that("a renamed column in a gt component is refused", {
+  skip_no_gt()
+  built <- gt_build_data(gt::gt(head(gt::exibble, 2)))
+  names(built$`_boxhead`)[names(built$`_boxhead`) == "column_align"] <- "align"
+
+  msg <- tryCatch(check_built(built), error = conditionMessage)
+  expect_match(msg, "_boxhead has no column column_align")
+  expect_match(msg, "not a problem with your table")
+})
+
+test_that("a style location gtxlsx does not know is reported", {
+  skip_no_gt()
+  tbl <- gt::tab_style(gt::gt(head(gt::exibble, 2)),
+                       gt::cell_fill(color = "yellow"),
+                       gt::cells_body(columns = "num", rows = 1))
+  g <- gtxlsx_extract(tbl)
+  g$styles$locname <- "cells_something_new"
+
+  th <- gtxlsx_theme(g$options)
+  p <- gtxlsx_plan(g, th, 1L, 1L)
+  cc <- new_sheet_cells()
+
+  expect_warning(gtxlsx_apply_styles(cc, g, th, p), "cells_something_new")
+  expect_warning(gtxlsx_apply_styles(cc, g, th, p), "not one gtxlsx knows")
+})
+
+test_that("the locations gt uses today are all known", {
+  skip_no_gt()
+  used <- c("title", "subtitle", "stubhead", "columns_columns",
+            "columns_groups", "row_groups", "data", "stub", "stub_column",
+            "summary_cells", "grand_summary_cells", "footnotes",
+            "source_notes")
+  expect_true(all(used %in% known_locnames))
+})
+
+test_that("an option gt no longer has is reported, once", {
+  skip_no_gt()
+  ops <- gt::gt(head(gt::exibble, 2))$`_options`
+
+  expect_warning(gtxlsx_theme(ops[ops$parameter != "table_font_size", ]),
+                 "no option table_font_size")
+  # the miss is cleared, so the next table starts fresh
+  expect_no_warning(gtxlsx_theme(ops))
+})
+
+test_that("every option gtxlsx reads exists in this gt", {
+  skip_no_gt()
+  # the accessors record misses, so reading a whole theme is the check
+  expect_no_warning(gtxlsx_theme(gt::gt(head(gt::exibble, 2))$`_options`))
 })

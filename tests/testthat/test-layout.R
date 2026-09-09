@@ -1,5 +1,6 @@
 test_that("stub indentation reaches the cell and grows with the gt value", {
   skip_no_gt()
+  skip_no_gt_fn("tab_stub_indent")
   d <- data.frame(k = c("Total", "Part", "Deep", "Plain"), v = 1:4,
                   stringsAsFactors = FALSE)
   tbl <- gt::gt(d, rowname_col = "k")
@@ -22,6 +23,7 @@ test_that("stub indentation reaches the cell and grows with the gt value", {
 
 test_that("indentation matches what gt recorded in the stub", {
   skip_no_gt()
+  skip_no_gt_fn("tab_stub_indent")
   d <- data.frame(k = paste0("r", 1:4), v = 1:4, stringsAsFactors = FALSE)
   tbl <- gt::tab_stub_indent(gt::gt(d, rowname_col = "k"), rows = 2:3, indent = 3)
 

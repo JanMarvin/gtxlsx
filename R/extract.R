@@ -132,7 +132,7 @@ gtxlsx_theme <- function(ops) {
     if (luminance(bg) > 186) fnt_dark else fnt_light
   }
 
-  list(
+  out <- list(
     font            = font,
     base_px         = base_px,
     size            = round(base_px * 0.75, 1),
@@ -182,6 +182,8 @@ gtxlsx_theme <- function(ops) {
     labels_hidden   = opt_lgl(ops, "column_labels_hidden"),
     group_as_column = opt_lgl(ops, "row_group_as_column")
   )
+  report_missed_options()
+  out
 }
 
 is_bold <- function(weight, default = FALSE) {
