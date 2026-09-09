@@ -42,7 +42,8 @@
 - [`wb_add_html()`](../reference/wb_add_html.md) accepts anything with
   an [`as.character()`](https://rdrr.io/r/base/character.html) method
   that returns HTML, so what `rvest` and `xml2` hand back can be passed
-  straight in: a whole page or a single `<table>` node.
+  straight in, whether that is a scraped page or a single `<table>`
+  node. One table is written per call, chosen with `which`.
 
 - The declared minimum for `gt` is now 0.8.0, which is where the suite
   still passes. Tests that need a `gt` feature added later skip on the
