@@ -15,6 +15,15 @@
 - A `<tr>` with no cells is a spacer the page uses for layout, and no
   longer lands as a blank row in the sheet.
 
+- A gt release that moves the internals this package reads now produces
+  a clear error naming the gt version and what is missing, rather than a
+  wrong sheet. That covers renamed columns inside the components, and a
+  style location or a
+  [`tab_options()`](https://gt.rstudio.com/reference/tab_options.html)
+  name gt no longer has is reported rather than dropped. The message
+  says plainly that it is a gtxlsx problem, so anyone building on this
+  package can forward it.
+
 - New `features` argument on [`wb_add_gt()`](../reference/wb_add_gt.md)
   and [`wb_add_html()`](../reference/wb_add_html.md) decides what is
   written besides the values: any of `"font"`, `"fill"`, `"border"`,
@@ -34,6 +43,10 @@
   an [`as.character()`](https://rdrr.io/r/base/character.html) method
   that returns HTML, so what `rvest` and `xml2` hand back can be passed
   straight in: a whole page or a single `<table>` node.
+
+- The declared minimum for `gt` is now 0.8.0, which is where the suite
+  still passes. Tests that need a `gt` feature added later skip on the
+  feature rather than on a version number.
 
 ## gtxlsx 0.3.0
 
@@ -55,7 +68,7 @@
   [`gt_split()`](https://gt.rstudio.com/reference/gt_split.html) object
   and writes the tables one after another, spaced by `gap`.
 
-- Works with `gt` 1.1.0 through 1.3.0.9000. On a multi-column stub, gt
+- Works with `gt` 0.10.0 through 1.3.0.9000. On a multi-column stub, gt
   records
   [`cells_stub()`](https://gt.rstudio.com/reference/cells_stub.html)
   styles under a different location name; that is handled now. Values
