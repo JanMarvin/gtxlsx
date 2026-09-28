@@ -1,9 +1,9 @@
 # Write a gt table into a worksheet
 
-Lays a \`gt\` table out as cells: the heading, the column spanners, the
+Lays a `gt` table out as cells: the heading, the column spanners, the
 column labels, the stub, the row groups, the body, any summary rows, the
 footnotes and the source notes, one after another in a single
-rectangular block starting at \`dims\`.
+rectangular block starting at `dims`.
 
 ## Usage
 
@@ -28,13 +28,15 @@ wb_add_gt(
 
 - wb:
 
-  A \`wbWorkbook\` object, as returned by \[openxlsx2::wb_workbook()\].
+  A `wbWorkbook` object, as returned by
+  [`openxlsx2::wb_workbook()`](https://janmarvin.github.io/openxlsx2/reference/wb_workbook.html).
 
 - x:
 
-  A \`gt_tbl\` object, or a \`gt_group\` as returned by
-  \[gt::gt_group()\] or \[gt::gt_split()\]. A group is written one table
-  after another down the sheet.
+  A `gt_tbl` object, or a `gt_group` as returned by
+  [`gt::gt_group()`](https://gt.rstudio.com/reference/gt_group.html) or
+  [`gt::gt_split()`](https://gt.rstudio.com/reference/gt_split.html). A
+  group is written one table after another down the sheet.
 
 - sheet:
 
@@ -43,24 +45,26 @@ wb_add_gt(
 - dims:
 
   Cell reference of the top left corner of the table, for example
-  \`"B2"\`.
+  `"B2"`.
 
 - numeric:
 
   Write numbers as numbers where the displayed format can be reproduced.
-  Set to \`FALSE\` to write every cell as text.
+  Set to `FALSE` to write every cell as text.
 
 - col_widths:
 
-  \`"auto"\` measures the rendered text and sizes the columns to fit it,
-  a numeric vector sets the widths directly, and \`NULL\` leaves them
-  alone. Widths set with \`gt::cols_width()\` always win.
+  `"auto"` measures the rendered text and sizes the columns to fit it, a
+  numeric vector sets the widths directly, and `NULL` leaves them alone.
+  Widths set with
+  [`gt::cols_width()`](https://gt.rstudio.com/reference/cols_width.html)
+  always win.
 
 - row_heights:
 
-  \`NULL\`, the default, leaves the spreadsheet software to size the
-  rows. \`"gt"\` sets each row from the padding gt would have used, and
-  a numeric vector sets the heights directly. Both also centre the text
+  `NULL`, the default, leaves the spreadsheet software to size the rows.
+  `"gt"` sets each row from the padding gt would have used, and a
+  numeric vector sets the heights directly. Both also centre the text
   vertically, since spreadsheet software aligns to the bottom of a cell
   and gt pads evenly. Rows with wrapped text keep the software's own
   sizing, which a fixed height would clip.
@@ -72,23 +76,23 @@ wb_add_gt(
 
 - gap:
 
-  Blank rows left between the tables of a \`gt_group\`. Ignored for a
+  Blank rows left between the tables of a `gt_group`. Ignored for a
   single table.
 
 - features:
 
-  What to write besides the values. \`TRUE\`, the default, is all of
-  them; \`FALSE\` writes values only. Otherwise a character vector of
-  any of \`"font"\`, \`"fill"\`, \`"border"\`, \`"numfmt"\`, \`"merge"\`
-  and \`"link"\`, so a table that goes wrong in one respect can still be
-  written in every other.
+  What to write besides the values. `TRUE`, the default, is all of them;
+  `FALSE` writes values only. Otherwise a character vector of any of
+  `"font"`, `"fill"`, `"border"`, `"numfmt"`, `"merge"` and `"link"`, so
+  a table that goes wrong in one respect can still be written in every
+  other.
 
 - freeze:
 
   Freeze panes so the heading and the stub stay in view while scrolling.
-  \`TRUE\` freezes below the heading and beside the stub, a length-two
-  vector \`c(row, col)\` freezes at a cell of your choosing, and
-  \`FALSE\`, the default, leaves the sheet alone.
+  `TRUE` freezes below the heading and beside the stub, a length-two
+  vector `c(row, col)` freezes at a cell of your choosing, and `FALSE`,
+  the default, leaves the sheet alone.
 
 - ...:
 
@@ -97,56 +101,67 @@ wb_add_gt(
 ## Value
 
 The workbook, invisibly. The input workbook is not modified; a clone is
-returned, as elsewhere in \`openxlsx2\`.
+returned, as elsewhere in `openxlsx2`.
 
 ## Details
 
-Everything \`gt\` applies before rendering is already in place when the
-cells are written, because \`gtxlsx\` reads the table gt has built
-rather than repeating the work: every \`fmt\_\*()\` and \`sub\_\*()\`,
-the \`cols_merge\_\*()\` family, \`text_transform()\`, \`data_color()\`,
-\`summary_rows()\` and the footnote marks. Styling set with
-\`gt::tab_style()\` and \`gt::tab_options()\` becomes fonts, fills,
-alignment and borders; markup inside a cell (bold, italic, superscripts,
-line breaks) becomes rich text.
+Everything `gt` applies before rendering is already in place when the
+cells are written, because `gtxlsx` reads the table gt has built rather
+than repeating the work: every `fmt_*()` and `sub_*()`, the
+`cols_merge_*()` family,
+[`text_transform()`](https://gt.rstudio.com/reference/text_transform.html),
+[`data_color()`](https://gt.rstudio.com/reference/data_color.html),
+[`summary_rows()`](https://gt.rstudio.com/reference/summary_rows.html)
+and the footnote marks. Styling set with
+[`gt::tab_style()`](https://gt.rstudio.com/reference/tab_style.html) and
+[`gt::tab_options()`](https://gt.rstudio.com/reference/tab_options.html)
+becomes fonts, fills, alignment and borders; markup inside a cell (bold,
+italic, superscripts, line breaks) becomes rich text.
 
 Anything gt draws as a picture cannot be written to a cell.
-\`gt::fmt_image()\` and \`gt::cols_nanoplot()\` leave the cell empty,
-\`gt::fmt_icon()\` and \`gt::fmt_flag()\` fall back to their label text,
-and \`gt::fmt_url()\` keeps the link text but not the hyperlink.
+[`gt::fmt_image()`](https://gt.rstudio.com/reference/fmt_image.html) and
+[`gt::cols_nanoplot()`](https://gt.rstudio.com/reference/cols_nanoplot.html)
+leave the cell empty,
+[`gt::fmt_icon()`](https://gt.rstudio.com/reference/fmt_icon.html) and
+[`gt::fmt_flag()`](https://gt.rstudio.com/reference/fmt_flag.html) fall
+back to their label text, and
+[`gt::fmt_url()`](https://gt.rstudio.com/reference/fmt_url.html) keeps
+the link text but not the hyperlink.
 
 ## Row striping
 
 A striped table gets a fill on every body row, the striping colour on
-one and \`table.background.color\` on the next. Spreadsheet software
+one and `table.background.color` on the next. Spreadsheet software
 leaves an unfilled cell transparent, so filling only half the rows would
 show the banding as detached blocks rather than a continuous column.
 
 The colour comes from gt, and gt's default is white. On a worksheet with
 a coloured background that white will cover the tint under the table.
-Set \`table.background.color\` to match, or turn striping off, if that
+Set `table.background.color` to match, or turn striping off, if that
 matters.
 
 ## Links
 
-\`fmt_url()\` and \`fmt_email()\` leave an anchor in the cell, and that
-becomes a hyperlink on the cell. The text shown is whatever \`gt\` put
-there.
+[`fmt_url()`](https://gt.rstudio.com/reference/fmt_url.html) and
+[`fmt_email()`](https://gt.rstudio.com/reference/fmt_email.html) leave
+an anchor in the cell, and that becomes a hyperlink on the cell. The
+text shown is whatever `gt` put there.
 
 ## Numbers versus text
 
-With \`numeric = TRUE\` a column is written as numbers whenever a
+With `numeric = TRUE` a column is written as numbers whenever a
 spreadsheet number format can reproduce exactly what gt displays.
-\`\$1,234.50\` becomes the value \`1234.5\` with the format
-\`"\$"#,##0.00\`, so the sheet stays usable for arithmetic. Columns gt
-has scaled or suffixed (\`1.2K\` for \`1200\`) cannot be reproduced that
-way and stay text; those cells are marked so spreadsheet software does
-not flag them as numbers stored as text.
+`$1,234.50` becomes the value `1234.5` with the format `"$"#,##0.00`, so
+the sheet stays usable for arithmetic. Columns gt has scaled or suffixed
+(`1.2K` for `1200`) cannot be reproduced that way and stay text; those
+cells are marked so spreadsheet software does not flag them as numbers
+stored as text.
 
 ## See also
 
-\[wb_add_html()\] for tables that are already HTML, and
-\[gtxlsx_extract()\] to see the pieces \`wb_add_gt()\` works from.
+[`wb_add_html()`](wb_add_html.md) for tables that are already HTML, and
+[`gtxlsx_extract()`](gtxlsx_extract.md) to see the pieces `wb_add_gt()`
+works from.
 
 ## Examples
 

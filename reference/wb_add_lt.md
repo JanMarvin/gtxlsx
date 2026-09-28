@@ -1,9 +1,9 @@
 # Write an lt table into a worksheet
 
-The \`lt\` package builds its HTML in JavaScript when the page is
-viewed, so there is no table to read on the R side. This helper asks
-\`lt\` to bake the table to static HTML first and then hands the result
-to \[wb_add_html()\].
+The `lt` package builds its HTML in JavaScript when the page is viewed,
+so there is no table to read on the R side. This helper asks `lt` to
+bake the table to static HTML first and then hands the result to
+[`wb_add_html()`](wb_add_html.md).
 
 ## Usage
 
@@ -15,11 +15,11 @@ wb_add_lt(wb, x, sheet = current_sheet(), dims = "A1", method = "auto", ...)
 
 - wb:
 
-  A \`wbWorkbook\` object.
+  A `wbWorkbook` object.
 
 - x:
 
-  An \`lt_tbl\` object.
+  An `lt_tbl` object.
 
 - sheet:
 
@@ -31,12 +31,12 @@ wb_add_lt(wb, x, sheet = current_sheet(), dims = "A1", method = "auto", ...)
 
 - method:
 
-  How \`lt\` should bake the table: \`"node"\` or \`"browser"\` to force
-  a renderer, \`"auto"\` to use whichever is available.
+  How `lt` should bake the table: `"node"` or `"browser"` to force a
+  renderer, `"auto"` to use whichever is available.
 
 - ...:
 
-  Passed on to \[wb_add_html()\].
+  Passed on to [`wb_add_html()`](wb_add_html.md).
 
 ## Value
 

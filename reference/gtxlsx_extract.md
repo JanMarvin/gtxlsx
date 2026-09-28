@@ -14,25 +14,25 @@ gtxlsx_extract(x, context = "html")
 
 - x:
 
-  A \`gt_tbl\` object.
+  A `gt_tbl` object.
 
 - context:
 
-  Render context handed to gt's builder. \`"html"\` is what
-  \[wb_add_gt()\] uses and the only value that has been exercised here.
+  Render context handed to gt's builder. `"html"` is what
+  [`wb_add_gt()`](wb_add_gt.md) uses and the only value that has been
+  exercised here.
 
 ## Value
 
-A named list with the elements \`body\`, \`data\`, \`boxhead\`,
-\`stub\`, \`groups_rows\`, \`row_groups\`, \`spanners\`, \`heading\`,
-\`stubhead\`, \`styles\`, \`footnotes\`, \`source_notes\`, \`summary\`
-and \`options\`.
+A named list with the elements `body`, `data`, `boxhead`, `stub`,
+`groups_rows`, `row_groups`, `spanners`, `heading`, `stubhead`,
+`styles`, `footnotes`, `source_notes`, `summary` and `options`.
 
 ## Details
 
-This is the input \[wb_add_gt()\] works from. It is exported mainly so
-you can see why a table came out the way it did, or check what a \`gt\`
-feature leaves behind before it reaches the worksheet.
+This is the input [`wb_add_gt()`](wb_add_gt.md) works from. It is
+exported mainly so you can see why a table came out the way it did, or
+check what a `gt` feature leaves behind before it reaches the worksheet.
 
 ## Examples
 

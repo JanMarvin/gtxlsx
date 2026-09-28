@@ -1,10 +1,12 @@
 # Turn a worksheet range back into a gt table (experimental)
 
-Reads a range of cells and builds a \`gt\` object from it: full width
+Reads a range of cells and builds a `gt` object from it: full width
 merged rows at the top become the heading, partly merged rows above the
 labels become spanners, full width merged rows at the bottom become
 source notes, and per-cell fills, fonts and alignment are translated
-into \`gt::tab_style()\` calls.
+into
+[`gt::tab_style()`](https://gt.rstudio.com/reference/tab_style.html)
+calls.
 
 ## Usage
 
@@ -23,7 +25,7 @@ wb_to_gt(
 
 - wb:
 
-  A \`wbWorkbook\` object.
+  A `wbWorkbook` object.
 
 - sheet:
 
@@ -35,21 +37,23 @@ wb_to_gt(
 
 - styles:
 
-  Translate cell styles into \`gt::tab_style()\` calls. This is done
-  cell by cell, so it is slow on large ranges.
+  Translate cell styles into
+  [`gt::tab_style()`](https://gt.rstudio.com/reference/tab_style.html)
+  calls. This is done cell by cell, so it is slow on large ranges.
 
 - structure:
 
-  Read merged cells as heading, spanners and source notes. With
-  \`FALSE\` the range is taken as a plain table.
+  Read merged cells as heading, spanners and source notes. With `FALSE`
+  the range is taken as a plain table.
 
 - ...:
 
-  Passed on to \[openxlsx2::wb_to_df()\].
+  Passed on to
+  [`openxlsx2::wb_to_df()`](https://janmarvin.github.io/openxlsx2/reference/wb_to_df.html).
 
 ## Value
 
-A \`gt_tbl\` object.
+A `gt_tbl` object.
 
 ## Please read this before using it
 
@@ -59,11 +63,12 @@ only light testing: a handful of sheets, no round trip guarantees. Treat
 its output as a starting point you will edit, not as a faithful copy,
 and expect the details to change or the function to be withdrawn.
 
-A worksheet simply does not record most of what a \`gt\` table knows.
-Row groups, the stub, footnote marks and number formats do not come
-back: groups arrive as ordinary rows, the stub as a column named after
-its letter, footnote marks glued to the text they mark, and
-\`\$115,900\` as the bare number \`115900\` with no \`fmt_currency()\`
+A worksheet simply does not record most of what a `gt` table knows. Row
+groups, the stub, footnote marks and number formats do not come back:
+groups arrive as ordinary rows, the stub as a column named after its
+letter, footnote marks glued to the text they mark, and `$115,900` as
+the bare number `115900` with no
+[`fmt_currency()`](https://gt.rstudio.com/reference/fmt_currency.html)
 behind it. Column names are made unique, so repeated labels gain a
 suffix.
 
