@@ -7,15 +7,15 @@
 gtxlsx_extract(x, context = "html")
 }
 \arguments{
-\item{x}{A `gt_tbl` object.}
+\item{x}{A \code{gt_tbl} object.}
 
-\item{context}{Render context handed to gt's builder. `"html"` is what
-[wb_add_gt()] uses and the only value that has been exercised here.}
+\item{context}{Render context handed to gt's builder. \code{"html"} is what
+\code{\link[=wb_add_gt]{wb_add_gt()}} uses and the only value that has been exercised here.}
 }
 \value{
-A named list with the elements `body`, `data`, `boxhead`, `stub`,
-  `groups_rows`, `row_groups`, `spanners`, `heading`, `stubhead`, `styles`,
-  `footnotes`, `source_notes`, `summary` and `options`.
+A named list with the elements \code{body}, \code{data}, \code{boxhead}, \code{stub},
+\code{groups_rows}, \code{row_groups}, \code{spanners}, \code{heading}, \code{stubhead}, \code{styles},
+\code{footnotes}, \code{source_notes}, \code{summary} and \code{options}.
 }
 \description{
 Runs gt's own build step and hands back the result as plain data frames and
@@ -23,8 +23,8 @@ lists: the rendered body, the column definitions, the stub, the row groups,
 the spanners, the styles, the footnotes and the table options.
 }
 \details{
-This is the input [wb_add_gt()] works from. It is exported mainly so you can
-see why a table came out the way it did, or check what a `gt` feature leaves
+This is the input \code{\link[=wb_add_gt]{wb_add_gt()}} works from. It is exported mainly so you can
+see why a table came out the way it did, or check what a \code{gt} feature leaves
 behind before it reaches the worksheet.
 }
 \examples{

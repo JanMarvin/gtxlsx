@@ -25,7 +25,7 @@ test_that("lengths convert to points and pixels", {
   expect_null(css_pt(NA))
 })
 
-test_that("border styles map onto Excel names", {
+test_that("border styles map onto spreadsheet names", {
   expect_equal(css_border("solid", "1px"), "thin")
   expect_equal(css_border("solid", "2px"), "medium")
   expect_equal(css_border("solid", "3px"), "thick")

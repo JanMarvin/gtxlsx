@@ -136,7 +136,8 @@ css_valign <- function(x, default = NULL) {
   switch(tolower(x), top = "top", middle = "center", bottom = "bottom", default)
 }
 
-# CSS px -> Excel column width (characters), calibrated on the default font
+# CSS px -> spreadsheet column width (characters), calibrated on the default
+# font
 px_to_width <- function(px) {
   if (is.na(px)) return(NA_real_)
   round(max(px - 5, 0) / 7, 2)
@@ -161,7 +162,7 @@ apply_transform <- function(x, how) {
          x)
 }
 
-# CSS rotation is counter-clockwise; Excel takes 1-90 counter-clockwise and
+# CSS rotation is counter-clockwise; spreadsheets take 1-90 counter-clockwise and
 # 91-180 as clockwise degrees minus 90
 css_rotation <- function(x) {
   if (is.null(x) || is.na(x)) return(NULL)

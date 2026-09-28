@@ -1,6 +1,7 @@
 ## Test environments
 
-* local Ubuntu 24.04, R 4.3.3
+* local Mac, R 4.6.1
+* GitHub Actions: ubuntu-latest (release, devel), windows-latest (release)
 
 ## R CMD check results
 
@@ -13,5 +14,8 @@
 and reproducing that step would mean reimplementing a large part of the
 package. The call is isolated in a single helper that checks the function is
 available and fails with an explanatory message if it is not, and a test
-asserts that every component gtxlsx reads is present, so a change on gt's side
+asserts that every component `gtxlsx` reads is present, so a change on gt's side
 surfaces as a test failure rather than as silently wrong output.
+
+This was discussed beforehand with the gt maintainer, Richard Iannone:
+https://github.com/rstudio/gt/discussions/2172#discussioncomment-18646027

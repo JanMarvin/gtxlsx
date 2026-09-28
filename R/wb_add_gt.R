@@ -20,8 +20,8 @@
 #'
 #' @section Row striping:
 #' A striped table gets a fill on every body row, the striping colour on one
-#' and `table.background.color` on the next. Excel leaves an unfilled cell
-#' transparent, so filling only half the rows would show the banding as
+#' and `table.background.color` on the next. Spreadsheet software leaves an
+#' unfilled cell transparent, so filling only half the rows would show the banding as
 #' detached blocks rather than a continuous column.
 #'
 #' The colour comes from gt, and gt's default is white. On a worksheet with a
@@ -33,13 +33,13 @@
 #' a hyperlink on the cell. The text shown is whatever `gt` put there.
 #'
 #' @section Numbers versus text:
-#' With `numeric = TRUE` a column is written as numbers whenever an Excel
+#' With `numeric = TRUE` a column is written as numbers whenever a spreadsheet
 #' number format can reproduce exactly what gt displays. `$1,234.50` becomes
 #' the value `1234.5` with the format `"$"#,##0.00`, so the sheet stays
 #' usable for arithmetic. Columns gt has scaled or suffixed (`1.2K` for
 #' `1200`) cannot be reproduced that way and stay text; those cells are
-#' marked so Excel does not flag them with its green "number stored as text"
-#' indicator.
+#' marked so spreadsheet software does not flag them as numbers stored as
+#' text.
 #'
 #' @param wb A `wbWorkbook` object, as returned by [openxlsx2::wb_workbook()].
 #' @param x A `gt_tbl` object, or a `gt_group` as returned by
@@ -53,11 +53,13 @@
 #' @param col_widths `"auto"` measures the rendered text and sizes the columns
 #'   to fit it, a numeric vector sets the widths directly, and `NULL` leaves
 #'   them alone. Widths set with `gt::cols_width()` always win.
-#' @param row_heights `NULL`, the default, leaves Excel to size the rows.
+#' @param row_heights `NULL`, the default, leaves the spreadsheet software to size
+#'   the rows.
 #'   `"gt"` sets each row from the padding gt would have used, and a numeric
 #'   vector sets the heights directly. Both also centre the text vertically,
-#'   since Excel aligns to the bottom of a cell and gt pads evenly. Rows with
-#'   wrapped text keep Excel's sizing, which a fixed height would clip.
+#'   since spreadsheet software aligns to the bottom of a cell and gt pads
+#'   evenly. Rows with wrapped text keep the software's own sizing, which a
+#'   fixed height would clip.
 #' @param features What to write besides the values. `TRUE`, the default, is
 #'   all of them; `FALSE` writes values only. Otherwise a character vector of
 #'   any of `"font"`, `"fill"`, `"border"`, `"numfmt"`, `"merge"` and
@@ -70,7 +72,7 @@
 #' @param gap Blank rows left between the tables of a `gt_group`. Ignored for
 #'   a single table.
 #' @param ignore_errors Mark text cells whose content looks like a number or a
-#'   date, so Excel stops showing the green warning triangle on them.
+#'   date, so spreadsheet software stops flagging them.
 #' @param ... Currently unused.
 #'
 #' @return The workbook, invisibly. The input workbook is not modified; a
@@ -472,8 +474,9 @@ gtxlsx_col_widths <- function(wb, sheet, g, th, p, col_widths) {
 }
 
 
-# gt spaces its rows with padding above and below the text; Excel sizes rows in
-# points, so the same look comes from the font size plus that padding.
+# gt spaces its rows with padding above and below the text;
+# spreadsheets size rows in points, so the same look comes from the font size
+# plus that padding.
 row_height_pt <- function(size_pt, pad_px) {
   if (is.na(pad_px)) pad_px <- 0
   round(size_pt * 1.3 + 2 * pad_px * 0.75, 1)
@@ -506,7 +509,7 @@ gtxlsx_row_heights <- function(wb, sheet, cc, th, p, row_heights) {
   put(p$footnote_rows, row_height_pt(th$footnote_size, th$pad_footnote))
   put(p$source_rows, row_height_pt(th$source_size, th$pad_source))
 
-  # a fixed height clips wrapped text, so those rows keep Excel's own sizing
+  # a fixed height clips wrapped text, so those rows keep the software's own sizing
   wrapped <- unique(vapply(collect_cells(cc), function(r) {
     if (isTRUE(r$wrap) || isTRUE(r$style$wrap)) as.numeric(r$row) else NA_real_
   }, numeric(1L)))

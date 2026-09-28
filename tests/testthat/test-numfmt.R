@@ -39,7 +39,7 @@ test_that("html text converts only with symbol affixes", {
 
 test_that("values printed without a leading zero still become numbers", {
   # gt gained drop_leading_zero, which prints .75 rather than 0.75; "#" is the
-  # Excel code that suppresses the leading zero the same way
+  # number format code that suppresses the leading zero the same way
   out <- infer_numfmt(c(".75", ".20"), c(0.75, 0.20))
   expect_equal(out$numfmt, "#.00")
   expect_equal(out$values, c(0.75, 0.20))

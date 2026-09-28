@@ -176,8 +176,8 @@ luminance <- function(hex) {
   v[1L] * 0.299 + v[2L] * 0.587 + v[3L] * 0.114
 }
 
-# CSS generic keywords are not fonts Excel can resolve; take the first real
-# family from a stack, or fall back
+# CSS generic keywords are not fonts a spreadsheet can resolve; take the
+# first real family from a stack, or fall back
 pick_font <- function(stack, default = "Calibri") {
   f <- trimws(gsub("[\"']", "", unlist(strsplit(as.character(stack), ","))))
   generic <- c("system-ui", "-apple-system", "blinkmacsystemfont", "ui-sans-serif",

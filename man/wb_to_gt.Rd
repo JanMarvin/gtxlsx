@@ -14,29 +14,29 @@ wb_to_gt(
 )
 }
 \arguments{
-\item{wb}{A `wbWorkbook` object.}
+\item{wb}{A \code{wbWorkbook} object.}
 
 \item{sheet}{The worksheet to read.}
 
 \item{dims}{Range to read. Defaults to the used range of the sheet.}
 
-\item{styles}{Translate cell styles into `gt::tab_style()` calls. This is
+\item{styles}{Translate cell styles into \code{gt::tab_style()} calls. This is
 done cell by cell, so it is slow on large ranges.}
 
 \item{structure}{Read merged cells as heading, spanners and source notes.
-With `FALSE` the range is taken as a plain table.}
+With \code{FALSE} the range is taken as a plain table.}
 
-\item{...}{Passed on to [openxlsx2::wb_to_df()].}
+\item{...}{Passed on to \code{\link[openxlsx2:wb_to_df]{openxlsx2::wb_to_df()}}.}
 }
 \value{
-A `gt_tbl` object.
+A \code{gt_tbl} object.
 }
 \description{
-Reads a range of cells and builds a `gt` object from it: full width merged
+Reads a range of cells and builds a \code{gt} object from it: full width merged
 rows at the top become the heading, partly merged rows above the labels
 become spanners, full width merged rows at the bottom become source notes,
 and per-cell fills, fonts and alignment are translated into
-`gt::tab_style()` calls.
+\code{gt::tab_style()} calls.
 }
 \section{Please read this before using it}{
 
@@ -46,11 +46,11 @@ light testing: a handful of sheets, no round trip guarantees. Treat its
 output as a starting point you will edit, not as a faithful copy, and
 expect the details to change or the function to be withdrawn.
 
-A worksheet simply does not record most of what a `gt` table knows. Row
+A worksheet simply does not record most of what a \code{gt} table knows. Row
 groups, the stub, footnote marks and number formats do not come back:
 groups arrive as ordinary rows, the stub as a column named after its
-letter, footnote marks glued to the text they mark, and `$115,900` as the
-bare number `115900` with no `fmt_currency()` behind it. Column names are
+letter, footnote marks glued to the text they mark, and \verb{$115,900} as the
+bare number \code{115900} with no \code{fmt_currency()} behind it. Column names are
 made unique, so repeated labels gain a suffix.
 }
 

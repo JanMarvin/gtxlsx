@@ -626,8 +626,8 @@ node_ancestors <- function(doc, node) {
 #'   label like `"458 Speciale"` stays text.
 #' @param col_widths `"auto"` measures the rendered text, a numeric vector sets
 #'   the widths directly, `NULL` leaves them alone.
-#' @param ignore_errors Mark text cells that look numeric, so Excel does not
-#'   flag them.
+#' @param ignore_errors Mark text cells that look numeric, so spreadsheet software
+#'   does not flag them.
 #' @param features What to write besides the values. `TRUE`, the default, is
 #'   all of them; `FALSE` writes values only. Otherwise a character vector of
 #'   any of `"font"`, `"fill"`, `"border"`, `"numfmt"`, `"merge"` and

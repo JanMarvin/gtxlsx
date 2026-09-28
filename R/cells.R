@@ -317,7 +317,8 @@ render_cells <- function(wb, sheet, cc, theme, features = all_features) {
   }
   warn_links(extra, inpage)
 
-  # Excel only flags text that it would rather have seen as a number or date,
+  # Spreadsheet software only flags text that it would rather have seen as a
+  # number or date,
   # so only those cells need an ignoredError entry
   looks_numeric <- function(x) {
     x <- trimws(x)

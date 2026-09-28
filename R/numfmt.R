@@ -68,8 +68,8 @@ infer_numfmt <- function(strings, values) {
   tol <- 0.5 * 10^(-dec_n) * (1 + 1e-9) + 1e-9
   if (any(abs(ref - num) > tol)) return(NULL)
 
-  # gt's drop_leading_zero prints ".75"; "#" is the Excel code that suppresses
-  # a leading zero the same way
+  # gt's drop_leading_zero prints ".75"; "#" is the number format code
+  # that suppresses a leading zero the same way
   lead <- if (all(!nzchar(p$int))) "#" else "0"
   body <- if (length(grp) == 1L) paste0("#,##", lead) else lead
   if (dec_n > 0L) body <- paste0(body, ".", strrep("0", dec_n))

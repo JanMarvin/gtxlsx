@@ -209,8 +209,8 @@ html_hrefs <- function(x) {
   out[nzchar(out)]
 }
 
-# An <a href> in a cell is a hyperlink in the sheet. Excel allows one target
-# per cell, so the first usable anchor wins. Anchors that only point at a
+# An <a href> in a cell is a hyperlink in the sheet. A cell allows one target,
+# so the first usable anchor wins. Anchors that only point at a
 # fragment of the page the table came from are passed over: a footnote marker
 # like <a href="#Footnote5"> is not a destination in a workbook, and skipping
 # it lets the real link in the same cell be found.

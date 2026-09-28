@@ -1,4 +1,4 @@
-# gtxlsx (development version)
+# gtxlsx 0.4.0
 
 * `fmt_url()` and `fmt_email()` produce real hyperlinks, and an `<a href>` in
   any HTML table does the same. A link that only points at a fragment of the

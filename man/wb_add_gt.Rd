@@ -20,100 +20,102 @@ wb_add_gt(
 )
 }
 \arguments{
-\item{wb}{A `wbWorkbook` object, as returned by [openxlsx2::wb_workbook()].}
+\item{wb}{A \code{wbWorkbook} object, as returned by \code{\link[openxlsx2:wb_workbook]{openxlsx2::wb_workbook()}}.}
 
-\item{x}{A `gt_tbl` object, or a `gt_group` as returned by
-[gt::gt_group()] or [gt::gt_split()]. A group is written one table after
+\item{x}{A \code{gt_tbl} object, or a \code{gt_group} as returned by
+\code{\link[gt:gt_group]{gt::gt_group()}} or \code{\link[gt:gt_split]{gt::gt_split()}}. A group is written one table after
 another down the sheet.}
 
 \item{sheet}{The worksheet to write to. Defaults to the current sheet.}
 
 \item{dims}{Cell reference of the top left corner of the table, for example
-`"B2"`.}
+\code{"B2"}.}
 
 \item{numeric}{Write numbers as numbers where the displayed format can be
-reproduced. Set to `FALSE` to write every cell as text.}
+reproduced. Set to \code{FALSE} to write every cell as text.}
 
-\item{col_widths}{`"auto"` measures the rendered text and sizes the columns
-to fit it, a numeric vector sets the widths directly, and `NULL` leaves
-them alone. Widths set with `gt::cols_width()` always win.}
+\item{col_widths}{\code{"auto"} measures the rendered text and sizes the columns
+to fit it, a numeric vector sets the widths directly, and \code{NULL} leaves
+them alone. Widths set with \code{gt::cols_width()} always win.}
 
-\item{row_heights}{`NULL`, the default, leaves Excel to size the rows.
-`"gt"` sets each row from the padding gt would have used, and a numeric
+\item{row_heights}{\code{NULL}, the default, leaves the spreadsheet software to size
+the rows.
+\code{"gt"} sets each row from the padding gt would have used, and a numeric
 vector sets the heights directly. Both also centre the text vertically,
-since Excel aligns to the bottom of a cell and gt pads evenly. Rows with
-wrapped text keep Excel's sizing, which a fixed height would clip.}
+since spreadsheet software aligns to the bottom of a cell and gt pads
+evenly. Rows with wrapped text keep the software's own sizing, which a
+fixed height would clip.}
 
 \item{ignore_errors}{Mark text cells whose content looks like a number or a
-date, so Excel stops showing the green warning triangle on them.}
+date, so spreadsheet software stops flagging them.}
 
-\item{gap}{Blank rows left between the tables of a `gt_group`. Ignored for
+\item{gap}{Blank rows left between the tables of a \code{gt_group}. Ignored for
 a single table.}
 
-\item{features}{What to write besides the values. `TRUE`, the default, is
-all of them; `FALSE` writes values only. Otherwise a character vector of
-any of `"font"`, `"fill"`, `"border"`, `"numfmt"`, `"merge"` and
-`"link"`, so a table that goes wrong in one respect can still be written
+\item{features}{What to write besides the values. \code{TRUE}, the default, is
+all of them; \code{FALSE} writes values only. Otherwise a character vector of
+any of \code{"font"}, \code{"fill"}, \code{"border"}, \code{"numfmt"}, \code{"merge"} and
+\code{"link"}, so a table that goes wrong in one respect can still be written
 in every other.}
 
 \item{freeze}{Freeze panes so the heading and the stub stay in view while
-scrolling. `TRUE` freezes below the heading and beside the stub, a
-length-two vector `c(row, col)` freezes at a cell of your choosing, and
-`FALSE`, the default, leaves the sheet alone.}
+scrolling. \code{TRUE} freezes below the heading and beside the stub, a
+length-two vector \code{c(row, col)} freezes at a cell of your choosing, and
+\code{FALSE}, the default, leaves the sheet alone.}
 
 \item{...}{Currently unused.}
 }
 \value{
 The workbook, invisibly. The input workbook is not modified; a
-  clone is returned, as elsewhere in `openxlsx2`.
+clone is returned, as elsewhere in \code{openxlsx2}.
 }
 \description{
-Lays a `gt` table out as cells: the heading, the column spanners, the
+Lays a \code{gt} table out as cells: the heading, the column spanners, the
 column labels, the stub, the row groups, the body, any summary rows, the
 footnotes and the source notes, one after another in a single rectangular
-block starting at `dims`.
+block starting at \code{dims}.
 }
 \details{
-Everything `gt` applies before rendering is already in place when the cells
-are written, because `gtxlsx` reads the table gt has built rather than
-repeating the work: every `fmt_*()` and `sub_*()`, the `cols_merge_*()`
-family, `text_transform()`, `data_color()`, `summary_rows()` and the
-footnote marks. Styling set with `gt::tab_style()` and `gt::tab_options()`
+Everything \code{gt} applies before rendering is already in place when the cells
+are written, because \code{gtxlsx} reads the table gt has built rather than
+repeating the work: every \verb{fmt_*()} and \verb{sub_*()}, the \verb{cols_merge_*()}
+family, \code{text_transform()}, \code{data_color()}, \code{summary_rows()} and the
+footnote marks. Styling set with \code{gt::tab_style()} and \code{gt::tab_options()}
 becomes fonts, fills, alignment and borders; markup inside a cell (bold,
 italic, superscripts, line breaks) becomes rich text.
 
 Anything gt draws as a picture cannot be written to a cell.
-`gt::fmt_image()` and `gt::cols_nanoplot()` leave the cell empty,
-`gt::fmt_icon()` and `gt::fmt_flag()` fall back to their label text, and
-`gt::fmt_url()` keeps the link text but not the hyperlink.
+\code{gt::fmt_image()} and \code{gt::cols_nanoplot()} leave the cell empty,
+\code{gt::fmt_icon()} and \code{gt::fmt_flag()} fall back to their label text, and
+\code{gt::fmt_url()} keeps the link text but not the hyperlink.
 }
 \section{Row striping}{
 
 A striped table gets a fill on every body row, the striping colour on one
-and `table.background.color` on the next. Excel leaves an unfilled cell
-transparent, so filling only half the rows would show the banding as
+and \code{table.background.color} on the next. Spreadsheet software leaves an
+unfilled cell transparent, so filling only half the rows would show the banding as
 detached blocks rather than a continuous column.
 
 The colour comes from gt, and gt's default is white. On a worksheet with a
 coloured background that white will cover the tint under the table. Set
-`table.background.color` to match, or turn striping off, if that matters.
+\code{table.background.color} to match, or turn striping off, if that matters.
 }
 
 \section{Links}{
 
-`fmt_url()` and `fmt_email()` leave an anchor in the cell, and that becomes
-a hyperlink on the cell. The text shown is whatever `gt` put there.
+\code{fmt_url()} and \code{fmt_email()} leave an anchor in the cell, and that becomes
+a hyperlink on the cell. The text shown is whatever \code{gt} put there.
 }
 
 \section{Numbers versus text}{
 
-With `numeric = TRUE` a column is written as numbers whenever an Excel
-number format can reproduce exactly what gt displays. `$1,234.50` becomes
-the value `1234.5` with the format `"$"#,##0.00`, so the sheet stays
-usable for arithmetic. Columns gt has scaled or suffixed (`1.2K` for
-`1200`) cannot be reproduced that way and stay text; those cells are
-marked so Excel does not flag them with its green "number stored as text"
-indicator.
+With \code{numeric = TRUE} a column is written as numbers whenever a spreadsheet
+number format can reproduce exactly what gt displays. \verb{$1,234.50} becomes
+the value \code{1234.5} with the format \code{"$"#,##0.00}, so the sheet stays
+usable for arithmetic. Columns gt has scaled or suffixed (\verb{1.2K} for
+\code{1200}) cannot be reproduced that way and stay text; those cells are
+marked so spreadsheet software does not flag them as numbers stored as
+text.
 }
 
 \examples{
@@ -132,6 +134,6 @@ wb_to_df(wb, col_names = FALSE)
 \dontshow{\}) # examplesIf}
 }
 \seealso{
-[wb_add_html()] for tables that are already HTML, and
-  [gtxlsx_extract()] to see the pieces `wb_add_gt()` works from.
+\code{\link[=wb_add_html]{wb_add_html()}} for tables that are already HTML, and
+\code{\link[=gtxlsx_extract]{gtxlsx_extract()}} to see the pieces \code{wb_add_gt()} works from.
 }

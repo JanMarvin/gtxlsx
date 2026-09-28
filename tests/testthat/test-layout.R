@@ -87,7 +87,7 @@ test_that("row heights are off unless asked for", {
   expect_equal(row_height(wb2, 2L), 30)
 })
 
-test_that("setting heights centres the text, since Excel aligns to the bottom", {
+test_that("setting heights centres the text, since cells align to the bottom", {
   skip_no_gt()
   wb <- openxlsx2::wb_workbook()$add_worksheet()
   wb <- wb_add_gt(wb, small_gt(), dims = "A1", row_heights = "gt")
@@ -101,7 +101,7 @@ test_that("setting heights centres the text, since Excel aligns to the bottom", 
   expect_equal(cell_alignment(wb2, "B2")$vertical, "top")
 })
 
-test_that("wrapped rows keep Excel's own sizing", {
+test_that("wrapped rows keep the software's own sizing", {
   skip_no_gt()
   tbl <- gt::tab_source_note(small_gt(), "a source note")
   g <- gtxlsx_extract(tbl)

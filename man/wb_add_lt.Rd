@@ -7,26 +7,26 @@
 wb_add_lt(wb, x, sheet = current_sheet(), dims = "A1", method = "auto", ...)
 }
 \arguments{
-\item{wb}{A `wbWorkbook` object.}
+\item{wb}{A \code{wbWorkbook} object.}
 
-\item{x}{An `lt_tbl` object.}
+\item{x}{An \code{lt_tbl} object.}
 
 \item{sheet}{The worksheet to write to.}
 
 \item{dims}{Cell reference of the top left corner.}
 
-\item{method}{How `lt` should bake the table: `"node"` or `"browser"` to
-force a renderer, `"auto"` to use whichever is available.}
+\item{method}{How \code{lt} should bake the table: \code{"node"} or \code{"browser"} to
+force a renderer, \code{"auto"} to use whichever is available.}
 
-\item{...}{Passed on to [wb_add_html()].}
+\item{...}{Passed on to \code{\link[=wb_add_html]{wb_add_html()}}.}
 }
 \value{
 The workbook, invisibly.
 }
 \description{
-The `lt` package builds its HTML in JavaScript when the page is viewed, so
-there is no table to read on the R side. This helper asks `lt` to bake the
-table to static HTML first and then hands the result to [wb_add_html()].
+The \code{lt} package builds its HTML in JavaScript when the page is viewed, so
+there is no table to read on the R side. This helper asks \code{lt} to bake the
+table to static HTML first and then hands the result to \code{\link[=wb_add_html]{wb_add_html()}}.
 }
 \details{
 Baking needs Node.js or a Chromium based browser on the machine.
