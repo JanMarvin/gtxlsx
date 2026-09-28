@@ -1,6 +1,6 @@
 # Changelog
 
-## gtxlsx (development version)
+## gtxlsx 0.4.0
 
 - [`fmt_url()`](https://gt.rstudio.com/reference/fmt_url.html) and
   [`fmt_email()`](https://gt.rstudio.com/reference/fmt_email.html)

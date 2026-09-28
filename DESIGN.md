@@ -82,8 +82,8 @@ using something.
 dozen values the writer needs: fonts and sizes per region, fills,
 weights, padding, striping. Two details worth knowing:
 
-- Font sizes are CSS pixels; Excel wants points. `css_pt()` converts, so
-  gt’s default `16px` becomes `12pt` rather than `16pt`.
+- Font sizes are CSS pixels; spreadsheets want points. `css_pt()`
+  converts, so gt’s default `16px` becomes `12pt` rather than `16pt`.
 - gt does not store a text colour per region. It computes one from that
   region’s background with a luminance rule in `gt_colors.scss`.
   `luminance()` reproduces it, which is why a dark column-label
@@ -154,7 +154,7 @@ the whole column.
 
 Writing `$1,234.50` as text produces a spreadsheet you cannot compute
 with, so `infer_numfmt()` (`R/numfmt.R`) tries to recover the number and
-an Excel format that displays it the same way.
+a number format that displays it the same way.
 
 It parses gt’s rendered strings for a prefix, sign, integer part,
 grouping mark, decimals and suffix; requires all of them to agree across
@@ -165,8 +165,8 @@ a unit of the last shown decimal.
 
 Anything that fails the check stays text: a column gt has scaled (`1.2K`
 for `1200`), inconsistent decimal counts, cells containing markup. Those
-cells get an `ignoredError` entry so Excel does not flag them with its
-green “number stored as text” triangle.
+cells get an `ignoredError` entry so spreadsheet software does not flag
+them as numbers stored as text.
 
 The HTML path has no source values to check against, so
 `text_as_numbers()` is stricter: only symbol affixes such as `$` or `%`
@@ -212,9 +212,9 @@ runs **across a row** for top and bottom, and **down a column** for left
 and right, so every cell in the range sits on the edge being drawn.
 
 One deliberate departure from gt: a striped table gets a fill on every
-body row, including the unstriped ones. Excel leaves an unfilled cell
-transparent, and alternating filled and transparent rows reads as
-detached blocks rather than banding.
+body row, including the unstriped ones. Spreadsheet software leaves an
+unfilled cell transparent, and alternating filled and transparent rows
+reads as detached blocks rather than banding.
 
 ## Reading HTML
 
@@ -353,7 +353,7 @@ changelog:
   column. Both names are handled; missing the new one meant a stub style
   silently reached no cell at all.
 - **`drop_leading_zero`** (development). A value printed as `.75` is
-  still written as a number; the Excel format uses `#` rather than `0`
+  still written as a number; the number format uses `#` rather than `0`
   so the leading zero stays suppressed.
 - **`gt_group()` and `gt_split()`**. gt counts the tables in a group
   with `nrow(x$gt_tbls)` and that has not changed, but the count here

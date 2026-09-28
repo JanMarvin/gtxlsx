@@ -64,7 +64,8 @@ wb_add_html(
 
 - ignore_errors:
 
-  Mark text cells that look numeric, so Excel does not flag them.
+  Mark text cells that look numeric, so spreadsheet software does not
+  flag them.
 
 - context:
 

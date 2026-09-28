@@ -58,16 +58,17 @@ wb_add_gt(
 
 - row_heights:
 
-  \`NULL\`, the default, leaves Excel to size the rows. \`"gt"\` sets
-  each row from the padding gt would have used, and a numeric vector
-  sets the heights directly. Both also centre the text vertically, since
-  Excel aligns to the bottom of a cell and gt pads evenly. Rows with
-  wrapped text keep Excel's sizing, which a fixed height would clip.
+  \`NULL\`, the default, leaves the spreadsheet software to size the
+  rows. \`"gt"\` sets each row from the padding gt would have used, and
+  a numeric vector sets the heights directly. Both also centre the text
+  vertically, since spreadsheet software aligns to the bottom of a cell
+  and gt pads evenly. Rows with wrapped text keep the software's own
+  sizing, which a fixed height would clip.
 
 - ignore_errors:
 
-  Mark text cells whose content looks like a number or a date, so Excel
-  stops showing the green warning triangle on them.
+  Mark text cells whose content looks like a number or a date, so
+  spreadsheet software stops flagging them.
 
 - gap:
 
@@ -117,9 +118,9 @@ and \`gt::fmt_url()\` keeps the link text but not the hyperlink.
 ## Row striping
 
 A striped table gets a fill on every body row, the striping colour on
-one and \`table.background.color\` on the next. Excel leaves an unfilled
-cell transparent, so filling only half the rows would show the banding
-as detached blocks rather than a continuous column.
+one and \`table.background.color\` on the next. Spreadsheet software
+leaves an unfilled cell transparent, so filling only half the rows would
+show the banding as detached blocks rather than a continuous column.
 
 The colour comes from gt, and gt's default is white. On a worksheet with
 a coloured background that white will cover the tint under the table.
@@ -134,13 +135,13 @@ there.
 
 ## Numbers versus text
 
-With \`numeric = TRUE\` a column is written as numbers whenever an Excel
-number format can reproduce exactly what gt displays. \`\$1,234.50\`
-becomes the value \`1234.5\` with the format \`"\$"#,##0.00\`, so the
-sheet stays usable for arithmetic. Columns gt has scaled or suffixed
-(\`1.2K\` for \`1200\`) cannot be reproduced that way and stay text;
-those cells are marked so Excel does not flag them with its green
-"number stored as text" indicator.
+With \`numeric = TRUE\` a column is written as numbers whenever a
+spreadsheet number format can reproduce exactly what gt displays.
+\`\$1,234.50\` becomes the value \`1234.5\` with the format
+\`"\$"#,##0.00\`, so the sheet stays usable for arithmetic. Columns gt
+has scaled or suffixed (\`1.2K\` for \`1200\`) cannot be reproduced that
+way and stay text; those cells are marked so spreadsheet software does
+not flag them as numbers stored as text.
 
 ## See also
 
