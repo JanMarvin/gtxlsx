@@ -12,7 +12,7 @@ needs nothing beyond 'openxlsx2'.
 
 Useful links:
 
-- <https://janmarvin.github.io/gtxlsx>
+- <https://janmarvin.github.io/gtxlsx/>
 
 - <https://github.com/JanMarvin/gtxlsx>
 
