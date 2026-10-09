@@ -29,7 +29,13 @@ over.
 
 ## Installation
 
-You can install development versions via r-universe:
+You can install the last stable release from CRAN:
+
+``` R
+install.packages('gtxlsx')
+```
+
+Or you can install development versions via r-universe:
 
 ``` r
 

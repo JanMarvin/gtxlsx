@@ -2,6 +2,8 @@
 
 ## gtxlsx 0.4.0
 
+CRAN release: 2026-10-08
+
 - [`fmt_url()`](https://gt.rstudio.com/reference/fmt_url.html) and
   [`fmt_email()`](https://gt.rstudio.com/reference/fmt_email.html)
   produce real hyperlinks, and an `<a href>` in any HTML table does the
