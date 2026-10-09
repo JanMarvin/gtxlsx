@@ -8,7 +8,8 @@
 [![R-CMD-check](https://github.com/JanMarvin/gtxlsx/actions/workflows/check-standard.yaml/badge.svg)](https://github.com/JanMarvin/gtxlsx/actions/workflows/check-standard.yaml)
 [![codecov](https://codecov.io/gh/JanMarvin/gtxlsx/graph/badge.svg?token=JMMBBBHPTG)](https://app.codecov.io/gh/JanMarvin/gtxlsx)
 [![r-universe](https://janmarvin.r-universe.dev/badges/gtxlsx)](https://janmarvin.r-universe.dev/gtxlsx)
-
+[![CRAN
+status](https://www.r-pkg.org/badges/version/gtxlsx)](https://cran.r-project.org/package=gtxlsx)
 <!-- badges: end -->
 
 Write **gt** tables — and plain HTML tables — into an **openxlsx2**
@@ -37,7 +38,11 @@ over.
 
 ## Installation
 
-You can install development versions via r-universe:
+You can install the last stable release from CRAN:
+
+    install.packages('gtxlsx')
+
+Or you can install development versions via r-universe:
 
 ``` r
 install.packages(
