@@ -63,13 +63,19 @@ Ours, and it should stay ours. `build_data()` is internal, gt owes it no
 stability, and the component test is a tripwire for us rather than a
 claim on gt. If a release moves it, the fix belongs here.
 
-This is also why the package sits on r-universe rather than CRAN. On
-CRAN, gt would see gtxlsx in its reverse dependency checks: their
-maintainer would get a red result they did not cause and cannot fix
-without asking us to change something. That is the real cost of reaching
-into another package’s internals, and it is worth more than the
-packaging convenience of being on CRAN. Off CRAN, gt never sees us and
-owes us nothing.
+The gt maintainer, Rich Iannone, kindly agreed to gtxlsx calling this
+function when asked (gt discussion \#2172). Without that agreement the
+package would not have been submitted to CRAN, and we are grateful for
+it. It is a courtesy extended to us, not a commitment from gt, and it
+does not change the aim: gtxlsx must not get in the way of gt’s
+development.
+
+Because the package is on CRAN, gt’s reverse dependency checks include
+gtxlsx. If a gt change breaks us, their maintainer gets a red result
+they did not cause and cannot fix without us. Keeping that from
+happening is our job: the suite runs against gt’s development version as
+well as the release, and a break is fixed here before it can reach gt’s
+maintainer.
 
 Two things follow. Bugs found in gt are reported as gt bugs,
 demonstrated through gt’s own output, with no mention of this package.
