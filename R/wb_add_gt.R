@@ -474,26 +474,29 @@ gtxlsx_col_widths <- function(wb, sheet, g, th, p, col_widths) {
   ifelse(is.na(widths), 8.43, widths)
 }
 
+# greedy word wrap of the visible text, `width` characters per line
+count_wrapped_lines <- function(txt, width) {
+  txt <- trimws(gsub("<[^>]+>", "", txt))
+  lines <- 1L
+  used <- 0
+  for (n in nchar(strsplit(txt, "[[:space:]]+")[[1L]])) {
+    if (used > 0 && used + 1 + n > width) {
+      lines <- lines + 1L
+      used <- n
+    } else {
+      used <- if (used > 0) used + 1 + n else n
+    }
+  }
+  lines
+}
+
 # Spreadsheet software does not fit the row height of merged cells to wrapped
 # text, so footnotes and source notes, which are merged across the table, get
 # a height estimated from the merged width and a greedy word wrap.
 gtxlsx_note_heights <- function(wb, sheet, g, th, p, widths) {
-  total <- sum(widths)
+  per_line <- function(size) max(floor(sum(widths) * 11 / size), 1)
   est <- function(txt, size, pad) {
-    txt <- trimws(gsub("<[^>]+>", "", txt))
-    words <- strsplit(txt, "[[:space:]]+")[[1L]]
-    per_line <- max(floor(total * 11 / size), 1)
-    lines <- 1L
-    used <- 0
-    for (w in words) {
-      n <- nchar(w)
-      if (used > 0 && used + 1 + n > per_line) {
-        lines <- lines + 1L
-        used <- n
-      } else {
-        used <- if (used > 0) used + 1 + n else n
-      }
-    }
+    lines <- count_wrapped_lines(txt, per_line(size))
     if (lines < 2L) return(NA_real_)
     round(lines * size * 1.3 + 2 * pad * 0.75, 1)
   }
@@ -503,14 +506,18 @@ gtxlsx_note_heights <- function(wb, sheet, g, th, p, widths) {
   fn <- p$footnotes
   for (i in seq_along(p$footnote_rows)) {
     rows <- c(rows, p$footnote_rows[i])
-    heights <- c(heights, est(paste(fn$mark[i], fn$text[i]), th$footnote_size, th$pad_footnote))
+    txt <- paste(fn$mark[i], fn$text[i])
+    heights <- c(heights, est(txt, th$footnote_size, th$pad_footnote))
   }
   for (i in seq_along(p$source_rows)) {
     rows <- c(rows, p$source_rows[i])
-    heights <- c(heights, est(g$source_notes[i], th$source_size, th$pad_source))
+    txt <- g$source_notes[i]
+    heights <- c(heights, est(txt, th$source_size, th$pad_source))
   }
   sel <- !is.na(heights)
-  if (any(sel)) wb$set_row_heights(sheet = sheet, rows = rows[sel], heights = heights[sel])
+  if (any(sel)) {
+    wb$set_row_heights(sheet = sheet, rows = rows[sel], heights = heights[sel])
+  }
   invisible(NULL)
 }
 
