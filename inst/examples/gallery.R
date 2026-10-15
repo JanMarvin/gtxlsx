@@ -17,7 +17,7 @@ exibble_tbl <-
   fmt_number(columns = num, decimals = 2, use_seps = TRUE) |>
   fmt_currency(columns = currency, currency = "EUR") |>
   fmt_date(columns = date, date_style = "wd_m_day_year") |>
-  fmt_time(columns = time, time_style = "h_m_p") |>
+  fmt_time(columns = time, time_style = "iso-short") |>
   sub_missing(columns = everything(), missing_text = "--") |>
   summary_rows(
     groups = everything(),

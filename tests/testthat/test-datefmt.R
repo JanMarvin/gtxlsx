@@ -26,11 +26,11 @@ test_that("times, character dates and text that is no date", {
     s = c("a", "b")
   )
   g <- gt::gt(x) |>
-    gt::fmt_datetime(t, date_style = 5, time_style = 4) |>
+    gt::fmt_datetime(t, date_style = 5, time_style = 1) |>
     gt::fmt_date(c, date_style = 8)
   cc <- date_cc(wb_add_gt(openxlsx2::wb_workbook()$add_worksheet("t"), g))
-  expect_equal(as.numeric(cc$v[cc$r == "A2"]), 46203 + 14.1525 / 24,
-               tolerance = 1e-6)
+  expect_equal(as.numeric(cc$v[cc$r == "A2"]),
+               46203 + (14 * 3600 + 5 * 60 + 9) / 86400, tolerance = 1e-9)
   expect_equal(as.numeric(cc$v[cc$r == "A3"]), 46024)
   expect_equal(as.numeric(cc$v[cc$r == "B2"]), 46053)
   expect_equal(cc$c_t[cc$r == "C2"], "inlineStr")
@@ -42,6 +42,14 @@ test_that("a date text gt did not produce from the value stays text", {
   expect_equal(infer_datefmt("2026-01-31", "2026-01-31")$numfmt, "yyyy-mm-dd")
   expect_null(infer_datefmt("2026-01-31", "not a date"))
   expect_null(infer_datefmt("2026-01-31", 5))
+})
+
+test_that("12 hour clocks are matched without the system locale", {
+  t <- as.POSIXct(c("2026-06-30 14:05:00", "2026-01-02 00:30:00"), tz = "UTC")
+  out <- infer_datefmt(c("June 30, 2026 2:05 PM", "January 2, 2026 12:30 AM"), t)
+  expect_equal(out$numfmt, "mmmm d, yyyy h:mm AM/PM")
+  expect_equal(out$values, c(46203 + 14.0833333333 / 24, 46024 + 0.5 / 24),
+               tolerance = 1e-9)
 })
 
 test_that("dates in html are read only when a style reproduces the text", {
