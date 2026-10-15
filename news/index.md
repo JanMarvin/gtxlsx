@@ -1,5 +1,23 @@
 # Changelog
 
+## gtxlsx (development version)
+
+- Dates are no longer always written as text.
+  [`wb_add_gt()`](../reference/wb_add_gt.md) writes a `Date`, date-time
+  or ISO text column as spreadsheet dates when the printed text is
+  exactly what one of gt’s date or time styles gives for the stored
+  value, and [`wb_add_html()`](../reference/wb_add_html.md) does the
+  same for whole days such as `31 January 2026`. Anything the format
+  cannot reproduce stays text. The new `convert_date` argument of both
+  functions switches this off.
+
+- [`wb_add_html()`](../reference/wb_add_html.md) gains `dec_mark` and
+  `big_mark`. Without them the marks are worked out from the whole
+  table, and a table that uses two different ones is left as text with a
+  warning. A number is only converted when the text comes back from the
+  value, so `0.001` is no longer read as 1, `1.234` is not guessed to be
+  1234, and ids such as `007` stay text.
+
 ## gtxlsx 0.4.0
 
 CRAN release: 2026-10-08

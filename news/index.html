@@ -7,7 +7,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">gtxlsx</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.4.1</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.4.2</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -32,6 +32,11 @@
       <small>Source: <a href="https://github.com/JanMarvin/gtxlsx/blob/main/NEWS.md" class="external-link"><code>NEWS.md</code></a></small>
     </div>
 
+    <div class="section level2">
+<h2 class="pkg-version" data-toc-text="development version" id="gtxlsx-development-version">gtxlsx (development version)<a class="anchor" aria-label="anchor" href="#gtxlsx-development-version"></a></h2>
+<ul><li><p>Dates are no longer always written as text. <code><a href="../reference/wb_add_gt.html">wb_add_gt()</a></code> writes a <code>Date</code>, date-time or ISO text column as spreadsheet dates when the printed text is exactly what one of gt’s date or time styles gives for the stored value, and <code><a href="../reference/wb_add_html.html">wb_add_html()</a></code> does the same for whole days such as <code>31 January 2026</code>. Anything the format cannot reproduce stays text. The new <code>convert_date</code> argument of both functions switches this off.</p></li>
+<li><p><code><a href="../reference/wb_add_html.html">wb_add_html()</a></code> gains <code>dec_mark</code> and <code>big_mark</code>. Without them the marks are worked out from the whole table, and a table that uses two different ones is left as text with a warning. A number is only converted when the text comes back from the value, so <code>0.001</code> is no longer read as 1, <code>1.234</code> is not guessed to be 1234, and ids such as <code>007</code> stay text.</p></li>
+</ul></div>
     <div class="section level2">
 <h2 class="pkg-version" data-toc-text="0.4.0" id="gtxlsx-040">gtxlsx 0.4.0<a class="anchor" aria-label="anchor" href="#gtxlsx-040"></a></h2><p class="text-muted">CRAN release: 2026-10-08</p>
 <ul><li><p><code><a href="https://gt.rstudio.com/reference/fmt_url.html" class="external-link">fmt_url()</a></code> and <code><a href="https://gt.rstudio.com/reference/fmt_email.html" class="external-link">fmt_email()</a></code> produce real hyperlinks, and an <code>&lt;a href&gt;</code> in any HTML table does the same. A link that only points at a fragment of the source page is skipped, since it means nothing in a workbook.</p></li>

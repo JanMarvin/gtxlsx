@@ -17,6 +17,9 @@ wb_add_html(
   dims = "A1",
   which = 1L,
   numeric = TRUE,
+  convert_date = TRUE,
+  dec_mark = NULL,
+  big_mark = NULL,
   col_widths = "auto",
   ignore_errors = TRUE,
   context = TRUE,
@@ -56,7 +59,26 @@ wb_add_html(
 
   Write cells as numbers where the text is plainly a number. Only symbol
   prefixes and suffixes such as `$` or `%` are converted, so a label
-  like `"458 Speciale"` stays text.
+  like `"458 Speciale"` stays text, and so does a number that the text
+  would not give back, such as `007`.
+
+- convert_date:
+
+  Write cells as spreadsheet dates when the text is a whole day in one
+  of gt's date styles or in ISO form, such as `31 January 2026` or
+  `2026-06-05`, with or without a time, and the matching format gives
+  the text back exactly. With `FALSE` the text is written as it is.
+
+- dec_mark, big_mark:
+
+  The characters the table uses for the decimal point and for grouping
+  thousands, for example `dec_mark = ","` for a table written as
+  `1.234,50`. With both left at `NULL` they are worked out from the
+  whole table: `1,234,567`, `1.234,50` or `12 345` show which marks it
+  uses, and a table that uses two different ones is not converted at
+  all, with a warning. A number that could still be read two ways stays
+  text: `1.234` is not guessed to be either 1.234 or 1234.
+  `big_mark = ""` is a table without grouping.
 
 - col_widths:
 

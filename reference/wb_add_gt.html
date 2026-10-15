@@ -13,7 +13,7 @@ block starting at dims."></head><body>
 
     <a class="navbar-brand me-2" href="../index.html">gtxlsx</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.4.1</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.4.2</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -54,6 +54,7 @@ block starting at <code>dims</code>.</p>
 <span>  sheet <span class="op">=</span> <span class="fu"><a href="https://janmarvin.github.io/openxlsx2/reference/waivers.html" class="external-link">current_sheet</a></span><span class="op">(</span><span class="op">)</span>,</span>
 <span>  dims <span class="op">=</span> <span class="st">"A1"</span>,</span>
 <span>  numeric <span class="op">=</span> <span class="cn">TRUE</span>,</span>
+<span>  convert_date <span class="op">=</span> <span class="cn">TRUE</span>,</span>
 <span>  col_widths <span class="op">=</span> <span class="st">"auto"</span>,</span>
 <span>  row_heights <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  ignore_errors <span class="op">=</span> <span class="cn">TRUE</span>,</span>
@@ -89,7 +90,16 @@ another down the sheet.</p></dd>
 
 <dt id="arg-numeric">numeric<a class="anchor" aria-label="anchor" href="#arg-numeric"></a></dt>
 <dd><p>Write numbers as numbers where the displayed format can be
-reproduced. Set to <code>FALSE</code> to write every cell as text.</p></dd>
+reproduced. Set to <code>FALSE</code> to write every number as text.</p></dd>
+
+
+<dt id="arg-convert-date">convert_date<a class="anchor" aria-label="anchor" href="#arg-convert-date"></a></dt>
+<dd><p>Write dates and times as spreadsheet dates. A column is
+converted when its text is exactly what one of gt's date or time styles
+gives for the stored value, with the matching spreadsheet format; month
+and weekday names then follow the language of the spreadsheet software.
+With <code>FALSE</code>, or where no style reproduces the text, the printed text is
+written as it is.</p></dd>
 
 
 <dt id="arg-col-widths">col_widths<a class="anchor" aria-label="anchor" href="#arg-col-widths"></a></dt>
