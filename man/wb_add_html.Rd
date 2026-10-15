@@ -11,6 +11,9 @@ wb_add_html(
   dims = "A1",
   which = 1L,
   numeric = TRUE,
+  convert_date = TRUE,
+  dec_mark = NULL,
+  big_mark = NULL,
   col_widths = "auto",
   ignore_errors = TRUE,
   context = TRUE,
@@ -36,7 +39,22 @@ one.}
 
 \item{numeric}{Write cells as numbers where the text is plainly a number.
 Only symbol prefixes and suffixes such as \code{$} or \verb{\%} are converted, so a
-label like \code{"458 Speciale"} stays text.}
+label like \code{"458 Speciale"} stays text, and so does a number that the
+text would not give back, such as \code{007}.}
+
+\item{convert_date}{Write cells as spreadsheet dates when the text is a whole
+day in one of gt's date styles or in ISO form, such as \verb{31 January 2026}
+or \code{2026-06-05}, with or without a time, and the matching format gives
+the text back exactly. With \code{FALSE} the text is written as it is.}
+
+\item{dec_mark, big_mark}{The characters the table uses for the decimal point
+and for grouping thousands, for example \code{dec_mark = ","} for a table
+written as \verb{1.234,50}. With both left at \code{NULL} they are worked out from
+the whole table: \verb{1,234,567}, \verb{1.234,50} or \verb{12 345} show which marks it
+uses, and a table that uses two different ones is not converted at all,
+with a warning. A number that could still be read two ways stays text:
+\code{1.234} is not guessed to be either 1.234 or 1234. \code{big_mark = ""} is a
+table without grouping.}
 
 \item{col_widths}{\code{"auto"} measures the rendered text, a numeric vector sets
 the widths directly, \code{NULL} leaves them alone.}

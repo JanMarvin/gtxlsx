@@ -223,7 +223,7 @@ chain_ok <- function(chain, levels, row_i, row_n) {
         lv <- levels[[i]]
         i <- i + 1L
         if (component_ok(cmp, lv$tag, lv$classes, lv$id) &&
-              pos_ok(cmp$pos, lv$pos_i, lv$pos_n)) {
+          pos_ok(cmp$pos, lv$pos_i, lv$pos_n)) {
           found <- TRUE
           break
         }
@@ -623,7 +623,20 @@ node_ancestors <- function(doc, node) {
 #'   one.
 #' @param numeric Write cells as numbers where the text is plainly a number.
 #'   Only symbol prefixes and suffixes such as `$` or `%` are converted, so a
-#'   label like `"458 Speciale"` stays text.
+#'   label like `"458 Speciale"` stays text, and so does a number that the
+#'   text would not give back, such as `007`.
+#' @param convert_date Write cells as spreadsheet dates when the text is a whole
+#'   day in one of gt's date styles or in ISO form, such as `31 January 2026`
+#'   or `2026-06-05`, with or without a time, and the matching format gives
+#'   the text back exactly. With `FALSE` the text is written as it is.
+#' @param dec_mark,big_mark The characters the table uses for the decimal point
+#'   and for grouping thousands, for example `dec_mark = ","` for a table
+#'   written as `1.234,50`. With both left at `NULL` they are worked out from
+#'   the whole table: `1,234,567`, `1.234,50` or `12 345` show which marks it
+#'   uses, and a table that uses two different ones is not converted at all,
+#'   with a warning. A number that could still be read two ways stays text:
+#'   `1.234` is not guessed to be either 1.234 or 1234. `big_mark = ""` is a
+#'   table without grouping.
 #' @param col_widths `"auto"` measures the rendered text, a numeric vector sets
 #'   the widths directly, `NULL` leaves them alone.
 #' @param ignore_errors Mark text cells that look numeric, so spreadsheet software
@@ -663,9 +676,10 @@ node_ancestors <- function(doc, node) {
 #'
 #' @export
 wb_add_html <- function(wb, x, sheet = current_sheet(), dims = "A1", which = 1L,
-                        numeric = TRUE, col_widths = "auto",
-                        ignore_errors = TRUE, context = TRUE, features = TRUE,
-                        freeze = FALSE, ...) {
+                        numeric = TRUE, convert_date = TRUE, dec_mark = NULL,
+                        big_mark = NULL,
+                        col_widths = "auto", ignore_errors = TRUE,
+                        context = TRUE, features = TRUE, freeze = FALSE, ...) {
   if (!inherits(wb, "wbWorkbook")) {
     stop("`wb` must be a 'wbWorkbook' object", call. = FALSE)
   }
@@ -761,11 +775,17 @@ wb_add_html <- function(wb, x, sheet = current_sheet(), dims = "A1", which = 1L,
   cell_txt[cell_blank] <- ""
   cell_plain[cell_blank] <- ""
   cell_rich <- is_rich(cell_txt)
-  cell_num <- if (numeric) {
-    text_as_numbers(ifelse(cell_rich, NA_character_, cell_plain))
-  } else {
-    list(value = rep(NA_real_, length(cell_txt)),
-         numfmt = rep(NA_character_, length(cell_txt)))
+  plain <- ifelse(cell_rich, NA_character_, cell_plain)
+  cell_num <- list(value = rep(NA_real_, length(cell_txt)),
+                   numfmt = rep(NA_character_, length(cell_txt)))
+  if (numeric) {
+    cell_num <- text_as_numbers(plain, dec_mark = dec_mark, big_mark = big_mark)
+  }
+  if (convert_date) {
+    dates <- text_as_dates(ifelse(is.na(cell_num$value), plain, NA_character_))
+    use <- !is.na(dates$value)
+    cell_num$value[use] <- dates$value[use]
+    cell_num$numfmt[use] <- dates$numfmt[use]
   }
 
   # Rows and columns rarely carry their own declarations; signing them lets the
@@ -1041,30 +1061,10 @@ wb_add_html <- function(wb, x, sheet = current_sheet(), dims = "A1", which = 1L,
 # The rendered text is the only truth an HTML table carries, so a cell such as
 # "$447,000" can be turned into a number plus a format without a round trip
 # check against source data.
-text_as_number <- function(x) {
-  if (is.na(x) || !nzchar(x) || !grepl("[0-9]", x, fixed = FALSE)) return(NULL)
-  p <- parse_num_strings(trimws(x))
-  if (is.null(p)) return(NULL)
-  # without source data to check against, only symbol affixes are safe: a label
-  # like "458 Speciale" would otherwise become the number 458
-  if (grepl("[0-9A-Za-z]", paste0(p$pre, p$suf))) return(NULL)
-  neg <- nzchar(p$neg) || grepl("[-\u2212]", p$pre)
-  pre <- gsub("[-\u2212]", "", p$pre)
-  grp <- nzchar(p$grp)
-  dec_n <- nchar(p$dec)
-  v <- p$int
-  if (grp) v <- gsub(p$grp, "", v, fixed = TRUE)
-  if (nzchar(p$decm)) v <- paste0(v, ".", p$dec)
-  v <- suppressWarnings(as.numeric(v))
-  if (is.na(v)) return(NULL)
-  if (neg) v <- -v
-  pct <- identical(trimws(p$suf), "%")
-  if (pct) v <- v / 100
-  body <- if (grp) "#,##0" else "0"
-  if (dec_n > 0L) body <- paste0(body, ".", strrep("0", dec_n))
-  list(value = v,
-       numfmt = paste0(quote_affix(trimws(pre)), body,
-                       quote_affix(if (pct) "%" else trimws(p$suf))))
+text_as_number <- function(x, dec_mark = NULL, big_mark = NULL) {
+  r <- text_as_numbers(x, dec_mark = dec_mark, big_mark = big_mark)
+  if (is.na(r$value)) return(NULL)
+  list(value = r$value, numfmt = r$numfmt)
 }
 
 html_col_widths <- function(g, plain, base_size) {

@@ -74,7 +74,7 @@ gtxlsx_extract <- function(x, context = "html") {
 
   dat <- as_df(built$`_data`)
   if (!is.null(dat) && !is.null(stub) && nrow(stub) == nrow(dat) &&
-        "rownum_i" %in% names(stub)) {
+    "rownum_i" %in% names(stub)) {
     dat <- dat[stub$rownum_i, , drop = FALSE]
     rownames(dat) <- NULL
   }

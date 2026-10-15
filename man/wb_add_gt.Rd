@@ -10,6 +10,7 @@ wb_add_gt(
   sheet = current_sheet(),
   dims = "A1",
   numeric = TRUE,
+  convert_date = TRUE,
   col_widths = "auto",
   row_heights = NULL,
   ignore_errors = TRUE,
@@ -32,7 +33,14 @@ another down the sheet.}
 \code{"B2"}.}
 
 \item{numeric}{Write numbers as numbers where the displayed format can be
-reproduced. Set to \code{FALSE} to write every cell as text.}
+reproduced. Set to \code{FALSE} to write every number as text.}
+
+\item{convert_date}{Write dates and times as spreadsheet dates. A column is
+converted when its text is exactly what one of gt's date or time styles
+gives for the stored value, with the matching spreadsheet format; month
+and weekday names then follow the language of the spreadsheet software.
+With \code{FALSE}, or where no style reproduces the text, the printed text is
+written as it is.}
 
 \item{col_widths}{\code{"auto"} measures the rendered text and sizes the columns
 to fit it, a numeric vector sets the widths directly, and \code{NULL} leaves

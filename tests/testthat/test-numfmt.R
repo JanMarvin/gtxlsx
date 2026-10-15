@@ -47,3 +47,66 @@ test_that("values printed without a leading zero still become numbers", {
   expect_equal(text_as_numbers(".75")$numfmt, "#.00")
   expect_equal(infer_numfmt(c("1.50", "2.25"), c(1.5, 2.25))$numfmt, "0.00")
 })
+
+test_that("marks are worked out from the whole input", {
+  v <- function(x, ...) suppressWarnings(text_as_numbers(x, ...)$value)
+
+  expect_equal(v(c("0.001", "0.025", "1.5")), c(0.001, 0.025, 1.5))
+  expect_equal(v(c("0,001", "0,123", "12,5")), c(0.001, 0.123, 12.5))
+  expect_equal(v(c("1,234,567", "1,234", "12.5")), c(1234567, 1234, 12.5))
+  expect_equal(v(c("1.234.567", "1.234", "12,5")), c(1234567, 1234, 12.5))
+  expect_equal(v(c("1 234 567", "1 234,5")), c(1234567, 1234.5))
+  expect_equal(v(c("1.234,50", "1.234", "0,5")), c(1234.5, 1234, 0.5))
+  expect_equal(v("$447,000"), 447000)
+
+  # nothing settles a lone "." in front of three digits
+  expect_true(all(is.na(v(c("1.234", "12.345", "5.678")))))
+  expect_equal(v(c("1,234", "5,678")), c(1234, 5678))
+})
+
+test_that("a text that the number would not give back stays text", {
+  v <- function(x, ...) suppressWarnings(text_as_numbers(x, ...)$value)
+  expect_true(all(is.na(v(c("007", "00.5", "0012")))))
+  expect_true(is.na(v("12345678901234567890")))
+  expect_true(is.na(v("1.234.5")))
+  expect_true(is.na(v("1,234.567,8")))
+  expect_true(is.na(v("01.234")))
+  expect_equal(v(c("0", "10", "-5")), c(0, 10, -5))
+  expect_equal(v(".75"), 0.75)
+})
+
+test_that("a table that mixes marks is not converted", {
+  expect_warning(
+    out <- text_as_numbers(c("1,234.5", "1.234.567", "42")),
+    "more than one decimal or group mark"
+  )
+  expect_equal(out$value, c(NA, NA, 42))
+  expect_warning(text_as_numbers(c("1.234,5", "12.5")), "more than one")
+})
+
+test_that("marks given by the user settle every cell", {
+  v <- function(x, ...) text_as_numbers(x, ...)$value
+  expect_equal(v(c("1.234", "12.345"), dec_mark = "."), c(1.234, 12.345))
+  expect_equal(v(c("1.234", "12.345"), dec_mark = ","), c(1234, 12345))
+  expect_equal(v("1,234", dec_mark = ","), 1.234)
+  expect_equal(v("1,234", dec_mark = "."), 1234)
+  expect_equal(v("1.234", big_mark = "."), 1234)
+  expect_equal(v("1.234", big_mark = ","), 1.234)
+  expect_equal(v("1'234.5", big_mark = "'"), 1234.5)
+  expect_equal(v("1.234", big_mark = ""), 1.234)
+  expect_true(is.na(v("0.001", dec_mark = ",")))
+  expect_true(is.na(v("007", dec_mark = ".")))
+
+  expect_equal(text_as_numbers("1.234,5", dec_mark = ",")$numfmt, "#,##0.0")
+  expect_equal(text_as_numbers("1.234", dec_mark = ".")$numfmt, "0.000")
+  expect_null(text_as_number("1.234"))
+  expect_equal(text_as_number("1.234", dec_mark = ".")$value, 1.234)
+})
+
+test_that("mark arguments are checked", {
+  expect_error(text_as_numbers("1", dec_mark = ".."), "single character")
+  expect_error(text_as_numbers("1", dec_mark = ""), "single character")
+  expect_error(text_as_numbers("1", dec_mark = "1"), "single character")
+  expect_error(text_as_numbers("1", big_mark = c(",", ".")), "single character")
+  expect_error(text_as_numbers("1", dec_mark = ".", big_mark = "."), "must differ")
+})

@@ -275,7 +275,7 @@ render_cells <- function(wb, sheet, cc, theme, features = all_features) {
   for (idx in group_by_sig(recs, c("halign", "valign", "wrap", "indent"), sigs)) {
     r <- recs[[idx[1L]]]
     if (is.null(fld(r, "halign")) && is.null(fld(r, "valign")) && !isTRUE(r$wrap) &&
-          is.null(fld(r, "indent")) && is.null(fld(r, "rotation"))) next
+      is.null(fld(r, "indent")) && is.null(fld(r, "rotation"))) next
     args <- list(
       horizontal = fld(r, "halign"),
       vertical = fld(r, "valign") %||% theme$valign %||% "bottom",

@@ -49,7 +49,13 @@
 #' @param dims Cell reference of the top left corner of the table, for example
 #'   `"B2"`.
 #' @param numeric Write numbers as numbers where the displayed format can be
-#'   reproduced. Set to `FALSE` to write every cell as text.
+#'   reproduced. Set to `FALSE` to write every number as text.
+#' @param convert_date Write dates and times as spreadsheet dates. A column is
+#'   converted when its text is exactly what one of gt's date or time styles
+#'   gives for the stored value, with the matching spreadsheet format; month
+#'   and weekday names then follow the language of the spreadsheet software.
+#'   With `FALSE`, or where no style reproduces the text, the printed text is
+#'   written as it is.
 #' @param col_widths `"auto"` measures the rendered text and sizes the columns
 #'   to fit it, a numeric vector sets the widths directly, and `NULL` leaves
 #'   them alone. Widths set with `gt::cols_width()` always win.
@@ -96,7 +102,8 @@
 #'
 #' @export
 wb_add_gt <- function(wb, x, sheet = current_sheet(), dims = "A1",
-                      numeric = TRUE, col_widths = "auto", row_heights = NULL,
+                      numeric = TRUE, convert_date = TRUE, col_widths = "auto",
+                      row_heights = NULL,
                       ignore_errors = TRUE, gap = 1L, features = TRUE,
                       freeze = FALSE, ...) {
   if (!inherits(wb, "wbWorkbook")) {
@@ -105,7 +112,8 @@ wb_add_gt <- function(wb, x, sheet = current_sheet(), dims = "A1",
   wb <- wb$clone()
 
   if (inherits(x, "gt_group")) {
-    return(invisible(write_gt_group(wb, x, sheet, dims, gap, ...)))
+    return(invisible(write_gt_group(wb, x, sheet, dims, gap, numeric = numeric,
+                                    convert_date = convert_date, ...)))
   }
 
   g <- gtxlsx_extract(x)
@@ -121,7 +129,7 @@ wb_add_gt <- function(wb, x, sheet = current_sheet(), dims = "A1",
   gtxlsx_heading_marks(cc, g, th, p, cols)
   gtxlsx_write_spanners(cc, g, th, p)
   gtxlsx_write_labels(cc, g, th, p)
-  gtxlsx_write_body(cc, g, th, p, numeric = numeric)
+  gtxlsx_write_body(cc, g, th, p, numeric = numeric, convert_date = convert_date)
   gtxlsx_write_summaries(cc, g, th, p)
   gtxlsx_write_notes(cc, g, th, p, cols)
   gtxlsx_apply_styles(cc, g, th, p)
@@ -244,7 +252,7 @@ gtxlsx_write_labels <- function(cc, g, th, p) {
   }
 }
 
-gtxlsx_write_body <- function(cc, g, th, p, numeric = TRUE) {
+gtxlsx_write_body <- function(cc, g, th, p, numeric = TRUE, convert_date = TRUE) {
   body <- g$body
   if (is.null(body) || !nrow(body)) return(invisible(NULL))
   boxh <- g$boxhead
@@ -265,8 +273,12 @@ gtxlsx_write_body <- function(cc, g, th, p, numeric = TRUE) {
     fill_col <- if (is_stub) th$stub_fill else NULL
 
     num <- NULL
-    if (numeric && !is_stub && !is.null(g$data[[v]]) && is.numeric(g$data[[v]])) {
-      num <- infer_numfmt(txt, g$data[[v]])
+    if (!is_stub && !is.null(g$data[[v]])) {
+      if (numeric && is.numeric(g$data[[v]])) {
+        num <- infer_numfmt(txt, g$data[[v]])
+      } else if (convert_date && !is.numeric(g$data[[v]])) {
+        num <- infer_datefmt(txt, g$data[[v]])
+      }
     }
 
     # Every cell in a column shares its font, size, colour and alignment; only

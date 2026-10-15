@@ -439,3 +439,41 @@ test_that("links that cannot be written are reported once", {
   wb3 <- openxlsx2::wb_workbook()$add_worksheet()
   expect_no_warning(wb_add_html(wb3, ok, dims = "A1"))
 })
+
+test_that("wb_add_html() does not guess an ambiguous number", {
+  read <- function(h, ...) {
+    wb <- openxlsx2::wb_workbook()$add_worksheet("t")
+    openxlsx2::wb_to_df(wb_add_html(wb, h, ...), col_names = FALSE)
+  }
+  tab <- function(...) {
+    paste0("<table><tr>", paste0("<td>", c(...), "</td>", collapse = ""),
+           "</tr></table>")
+  }
+
+  df <- read(tab("0.001", "0.025", "12.5"))
+  expect_equal(unlist(df, use.names = FALSE), c(0.001, 0.025, 12.5))
+
+  df <- read(tab("1.234", "12.345"))
+  expect_equal(unlist(df, use.names = FALSE), c("1.234", "12.345"))
+  df <- read(tab("1.234", "12.345"), dec_mark = ".")
+  expect_equal(unlist(df, use.names = FALSE), c(1.234, 12.345))
+
+  df <- read(tab("1,234,567", "1.234"))
+  expect_equal(unlist(df, use.names = FALSE), c(1234567, 1.234))
+  df <- read(tab("1.234.567", "1.234"))
+  expect_equal(unlist(df, use.names = FALSE), c(1234567, 1234))
+
+  expect_warning(df <- read(tab("1,234.5", "1.234.567", "7")), "more than one")
+  expect_equal(unlist(df, use.names = FALSE), c("1,234.5", "1.234.567", "7"))
+})
+
+test_that("convert_date and numeric switch the conversions off", {
+  h <- "<table><tr><td>31 January 2026</td><td>1,234</td></tr></table>"
+  cc <- function(...) {
+    wb <- openxlsx2::wb_workbook()$add_worksheet("t")
+    wb_add_html(wb, h, ...)$worksheets[[1L]]$sheet_data$cc
+  }
+  expect_equal(cc()$c_t, c("", ""))
+  expect_equal(cc(convert_date = FALSE)$c_t, c("inlineStr", ""))
+  expect_equal(cc(numeric = FALSE)$c_t, c("", "inlineStr"))
+})
