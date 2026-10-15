@@ -132,8 +132,9 @@ wb_add_gt <- function(wb, x, sheet = current_sheet(), dims = "A1",
   if ("border" %in% features) gtxlsx_borders(wb, sheet, cc, g, th, p, cols)
   freeze_at(wb, sheet, freeze, p$body_row[1L],
             if (length(p$stub_vars)) max(p$col_of(p$stub_vars)) + 1L else p$col0)
-  gtxlsx_col_widths(wb, sheet, g, th, p, col_widths)
+  widths <- gtxlsx_col_widths(wb, sheet, g, th, p, col_widths)
   gtxlsx_row_heights(wb, sheet, cc, th, p, row_heights)
+  if (!is.numeric(row_heights)) gtxlsx_note_heights(wb, sheet, g, th, p, widths)
 
   if (isTRUE(ignore_errors)) {
     for (rng in flagged) {
@@ -444,13 +445,13 @@ measure_col <- function(v, g, th, p) {
 }
 
 gtxlsx_col_widths <- function(wb, sheet, g, th, p, col_widths) {
-  if (is.null(col_widths)) return(invisible(NULL))
   cols <- p$col0 - 1L + seq_len(p$w)
+  if (is.null(col_widths)) return(rep(8.43, length(cols)))
 
   if (is.numeric(col_widths)) {
-    wb$set_col_widths(sheet = sheet, cols = cols,
-                      widths = rep_len(col_widths, length(cols)))
-    return(invisible(NULL))
+    widths <- rep_len(col_widths, length(cols))
+    wb$set_col_widths(sheet = sheet, cols = cols, widths = widths)
+    return(widths)
   }
 
   boxh <- g$boxhead
@@ -470,6 +471,46 @@ gtxlsx_col_widths <- function(wb, sheet, g, th, p, col_widths) {
   if (any(sel)) {
     wb$set_col_widths(sheet = sheet, cols = cols[sel], widths = round(widths[sel], 2))
   }
+  ifelse(is.na(widths), 8.43, widths)
+}
+
+# Spreadsheet software does not fit the row height of merged cells to wrapped
+# text, so footnotes and source notes, which are merged across the table, get
+# a height estimated from the merged width and a greedy word wrap.
+gtxlsx_note_heights <- function(wb, sheet, g, th, p, widths) {
+  total <- sum(widths)
+  est <- function(txt, size, pad) {
+    txt <- trimws(gsub("<[^>]+>", "", txt))
+    words <- strsplit(txt, "[[:space:]]+")[[1L]]
+    per_line <- max(floor(total * 11 / size), 1)
+    lines <- 1L
+    used <- 0
+    for (w in words) {
+      n <- nchar(w)
+      if (used > 0 && used + 1 + n > per_line) {
+        lines <- lines + 1L
+        used <- n
+      } else {
+        used <- if (used > 0) used + 1 + n else n
+      }
+    }
+    if (lines < 2L) return(NA_real_)
+    round(lines * size * 1.3 + 2 * pad * 0.75, 1)
+  }
+
+  rows <- integer()
+  heights <- numeric()
+  fn <- p$footnotes
+  for (i in seq_along(p$footnote_rows)) {
+    rows <- c(rows, p$footnote_rows[i])
+    heights <- c(heights, est(paste(fn$mark[i], fn$text[i]), th$footnote_size, th$pad_footnote))
+  }
+  for (i in seq_along(p$source_rows)) {
+    rows <- c(rows, p$source_rows[i])
+    heights <- c(heights, est(g$source_notes[i], th$source_size, th$pad_source))
+  }
+  sel <- !is.na(heights)
+  if (any(sel)) wb$set_row_heights(sheet = sheet, rows = rows[sel], heights = heights[sel])
   invisible(NULL)
 }
 
