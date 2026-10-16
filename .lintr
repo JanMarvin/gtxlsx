@@ -2,5 +2,5 @@ linters: linters_with_defaults(
     line_length_linter(90),
     object_length_linter(40)
   )
-exclusions: list("inst/examples")
+exclusions: list("inst/examples", "inst/talk")
 encoding: "UTF-8"
