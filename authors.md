@@ -10,13 +10,13 @@ Source:
 [`DESCRIPTION`](https://github.com/JanMarvin/gtxlsx/blob/main/DESCRIPTION)
 
 Garbuszus J (2026). *gtxlsx: Write 'gt' and HTML Tables into 'openxlsx2'
-Workbooks*. R package version 0.4.2,
+Workbooks*. R package version 0.4.3,
 <https://janmarvin.github.io/gtxlsx/>.
 
     @Manual{,
       title = {gtxlsx: Write 'gt' and HTML Tables into 'openxlsx2' Workbooks},
       author = {Jan Marvin Garbuszus},
       year = {2026},
-      note = {R package version 0.4.2},
+      note = {R package version 0.4.3},
       url = {https://janmarvin.github.io/gtxlsx/},
     }
