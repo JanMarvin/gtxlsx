@@ -1,6 +1,7 @@
 linters: linters_with_defaults(
     line_length_linter(90),
-    object_length_linter(40)
+    object_length_linter(40),
+    indentation_linter = NULL  # broken in github (2026-10-17)
   )
 exclusions: list("inst/examples", "inst/talk")
 encoding: "UTF-8"
