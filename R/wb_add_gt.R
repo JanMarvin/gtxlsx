@@ -176,8 +176,13 @@ write_gt_group <- function(wb, x, sheet, dims, gap, ...) {
   row <- min(rc$row)
   col <- min(rc$col)
 
+  if (!"grp_pull" %in% getNamespaceExports("gt")) {
+    stop("this version of gt has no grp_pull(); update gt to write a gt_group",
+         call. = FALSE)
+  }
+  grp_pull <- getExportedValue("gt", "grp_pull")
   for (i in seq_len(n)) {
-    tbl <- gt::grp_pull(x, which = i)
+    tbl <- grp_pull(x, which = i)
     g <- gtxlsx_extract(tbl)
     th <- gtxlsx_theme(g$options)
     p <- gtxlsx_plan(g, th, row, col)
