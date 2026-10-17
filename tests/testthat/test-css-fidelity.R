@@ -9,7 +9,7 @@ test_that("the default theme matches gt's stylesheet region by region", {
   expect_css_matches_gt(full_tbl())
 })
 
-test_that("opt_stylize colours and weights match gt's stylesheet", {
+test_that("opt_stylize colors and weights match gt's stylesheet", {
   skip_no_gt()
   skip_no_gt_fn("opt_stylize")
   expect_css_matches_gt(gt::opt_stylize(full_tbl(), style = 3, color = "blue"))

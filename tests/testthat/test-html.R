@@ -22,7 +22,7 @@ test_that("nested tags restore the outer state", {
   expect_null(runs[[3L]]$vert_align)
 })
 
-test_that("css sizes and colours", {
+test_that("css sizes and colors", {
   expect_equal(css_pt("16px"), 12)
   expect_equal(css_pt("125%", base = 16), 15)
   expect_equal(css_color("red"), "FFFF0000")

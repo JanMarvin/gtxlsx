@@ -120,8 +120,7 @@ of `tab_options()`.
 
 What cannot survive a spreadsheet does not: anything gt draws as a
 picture. `fmt_image()` and `cols_nanoplot()` leave the cell empty,
-`fmt_icon()` and `fmt_flag()` fall back to their label text, and
-`fmt_url()` keeps the link text but not the link.
+`fmt_icon()` and `fmt_flag()` fall back to their label text.
 
 `wb_to_gt()` goes the other way, from a worksheet range back to a `gt`
 object. It is a development toy rather than a finished feature — see its
@@ -130,6 +129,6 @@ help page before relying on it.
 ## See also
 
 `inst/examples/` holds three scripts: a gallery of gt tables covering
-summaries, colours, merged columns, nested spanners and theming; a set
+summaries, colors, merged columns, nested spanners and theming; a set
 of HTML dialects from several table packages; and a coverage probe that
 runs most of the `gt` API through the writer.

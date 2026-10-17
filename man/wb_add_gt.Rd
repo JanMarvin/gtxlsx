@@ -24,8 +24,8 @@ wb_add_gt(
 \item{wb}{A \code{wbWorkbook} object, as returned by \code{\link[openxlsx2:wb_workbook]{openxlsx2::wb_workbook()}}.}
 
 \item{x}{A \code{gt_tbl} object, or a \code{gt_group} as returned by
-\code{\link[gt:gt_group]{gt::gt_group()}} or \code{\link[gt:gt_split]{gt::gt_split()}}. A group is written one table after
-another down the sheet.}
+\code{gt::gt_group()} or \code{gt::gt_split()}. A group is written one table
+after another down the sheet.}
 
 \item{sheet}{The worksheet to write to. Defaults to the current sheet.}
 
@@ -49,10 +49,12 @@ them alone. Widths set with \code{gt::cols_width()} always win.}
 \item{row_heights}{\code{NULL}, the default, leaves the spreadsheet software to size
 the rows.
 \code{"gt"} sets each row from the padding gt would have used, and a numeric
-vector sets the heights directly. Both also centre the text vertically,
+vector sets the heights directly. Both also center the text vertically,
 since spreadsheet software aligns to the bottom of a cell and gt pads
 evenly. Rows with wrapped text keep the software's own sizing, which a
-fixed height would clip.}
+fixed height would clip. Footnotes and source notes are merged across the
+table, and spreadsheet software does not fit the height of merged cells,
+so their height is estimated from the table width.}
 
 \item{ignore_errors}{Mark text cells whose content looks like a number or a
 date, so spreadsheet software stops flagging them.}
@@ -94,18 +96,17 @@ italic, superscripts, line breaks) becomes rich text.
 
 Anything gt draws as a picture cannot be written to a cell.
 \code{gt::fmt_image()} and \code{gt::cols_nanoplot()} leave the cell empty,
-\code{gt::fmt_icon()} and \code{gt::fmt_flag()} fall back to their label text, and
-\code{gt::fmt_url()} keeps the link text but not the hyperlink.
+\code{gt::fmt_icon()} and \code{gt::fmt_flag()} fall back to their label text.
 }
 \section{Row striping}{
 
-A striped table gets a fill on every body row, the striping colour on one
+A striped table gets a fill on every body row, the striping color on one
 and \code{table.background.color} on the next. Spreadsheet software leaves an
 unfilled cell transparent, so filling only half the rows would show the banding as
 detached blocks rather than a continuous column.
 
-The colour comes from gt, and gt's default is white. On a worksheet with a
-coloured background that white will cover the tint under the table. Set
+The color comes from gt, and gt's default is white. On a worksheet with a
+colored background that white will cover the tint under the table. Set
 \code{table.background.color} to match, or turn striping off, if that matters.
 }
 
@@ -123,7 +124,10 @@ the value \code{1234.5} with the format \code{"$"#,##0.00}, so the sheet stays
 usable for arithmetic. Columns gt has scaled or suffixed (\verb{1.2K} for
 \code{1200}) cannot be reproduced that way and stay text; those cells are
 marked so spreadsheet software does not flag them as numbers stored as
-text.
+text. The decision is made per column: if one cell cannot be reproduced,
+for example a cell with a footnote mark or one replaced with a dash by
+\code{text_transform()}, the whole column is written as text. Missing values
+shown with \code{sub_missing()} are the exception and leave the numbers alone.
 }
 
 \examples{

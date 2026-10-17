@@ -87,7 +87,7 @@ test_that("row heights are off unless asked for", {
   expect_equal(row_height(wb2, 2L), 30)
 })
 
-test_that("setting heights centres the text, since cells align to the bottom", {
+test_that("setting heights centers the text, since cells align to the bottom", {
   skip_no_gt()
   wb <- openxlsx2::wb_workbook()$add_worksheet()
   wb <- wb_add_gt(wb, small_gt(), dims = "A1", row_heights = "gt")

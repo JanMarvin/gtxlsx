@@ -1,14 +1,14 @@
-test_that("colours are parsed from every notation", {
+test_that("colors are parsed from every notation", {
   expect_equal(css_hex("#1a2b3c"), "FF1A2B3C")
   expect_equal(css_hex("#abc"), "FFAABBCC")
   expect_equal(css_hex("rgb(1, 2, 3)"), "FF010203")
   expect_equal(css_hex("rgba(1,2,3,0.5)"), "80010203")
   expect_equal(css_hex("hsl(0, 100%, 50%)"), "FFFF0000")
   expect_null(css_hex("transparent"))
-  expect_null(css_hex("not-a-colour"))
+  expect_null(css_hex("not-a-color"))
 })
 
-test_that("CSS colour names win over the X11 names R knows", {
+test_that("CSS color names win over the X11 names R knows", {
   expect_equal(css_hex("green"), "FF008000")
   expect_equal(css_hex("purple"), "FF800080")
   expect_equal(css_hex("rebeccapurple"), "FF663399")

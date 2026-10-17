@@ -51,7 +51,7 @@ test_that("a nested table does not leak rows into its parent", {
   expect_equal(nrow(openxlsx2::wb_to_df(wb, col_names = FALSE)), 1L)
 })
 
-test_that("presentational attributes are honoured", {
+test_that("presentational attributes are honored", {
   html <- paste0("<table border=\"1\"><tr bgcolor=\"#336699\">",
                  "<th align=\"left\">h</th></tr>",
                  "<tr><td bgcolor=\"#ffe4e1\" align=\"right\">v</td></tr></table>")
@@ -107,7 +107,7 @@ test_that("a wrapper chain carries its styling into the cell", {
   expect_true(sheet_style(wb, "A1")$bold)
 })
 
-test_that("caption and neighbouring blocks become rows", {
+test_that("caption and neighboring blocks become rows", {
   html <- paste0("<div><div>Title</div><table><caption>Cap</caption>",
                  "<tr><td>v</td></tr></table><div>Note</div></div>")
   wb <- openxlsx2::wb_workbook()$add_worksheet()
@@ -186,7 +186,7 @@ test_that("row and section rules reach their cells", {
   expect_false(sheet_style(wb, "A2")$bold)
 })
 
-test_that("@media rules and hsl colours are handled", {
+test_that("@media rules and hsl colors are handled", {
   html <- paste0("<style>@media screen{td{background-color:hsl(0,100%,50%)}}</style>",
                  "<table><tr><td>x</td></tr></table>")
   wb <- openxlsx2::wb_workbook()$add_worksheet()

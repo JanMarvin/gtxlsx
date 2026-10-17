@@ -609,8 +609,8 @@ node_ancestors <- function(doc, node) {
 #' stylesheets pulled in with `<link>` are not fetched.
 #'
 #' Properties with no spreadsheet equivalent, such as gradients, letter
-#' spacing and rounded corners, are dropped. `<img>` and `<svg>` leave an empty cell, and
-#' `<a href>` keeps its text but not the link.
+#' spacing and rounded corners, are dropped. `<img>` and `<svg>` leave an empty
+#' cell.
 #'
 #' @param wb A `wbWorkbook` object.
 #' @param x HTML: a string, a file path, an already parsed document, or

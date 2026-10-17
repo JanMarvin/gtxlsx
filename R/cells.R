@@ -107,7 +107,7 @@ fld <- function(r, nm) {
 
 group_by_sig <- function(recs, fields, sigs = NULL) {
   # A record may point at a shared style through `sig`, but anything set
-  # directly on it -- a tab_style() colour, a data_color() fill -- overrides
+  # directly on it -- a tab_style() color, a data_color() fill -- overrides
   # that per cell and has to take part in the key. Leaving the overrides out
   # would hand every cell in the group the first one's value.
   key <- vapply(seq_along(recs), function(i) {

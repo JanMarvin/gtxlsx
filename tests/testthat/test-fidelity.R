@@ -1,8 +1,8 @@
 # These compare the workbook against the styles gt itself declared, cell by
 # cell, so a style that lands on the wrong cell or gets collapsed onto its
-# neighbours fails here rather than in a visual check.
+# neighbors fails here rather than in a visual check.
 
-test_that("data_color fills and its contrast text colour both survive", {
+test_that("data_color fills and its contrast text color both survive", {
   skip_no_gt()
   skip_no_gt_fn("data_color")
   skip_if_gt_cannot(gt::data_color(gt::gt(data.frame(v = 1:2)), columns = "v",
@@ -51,7 +51,7 @@ test_that("the last style wins where two target the same cell", {
   expect_equal(sheet_style(wb, "B2")$fill, "FF00FF00")
 })
 
-test_that("opt_stylize keeps its per region colours", {
+test_that("opt_stylize keeps its per region colors", {
   skip_no_gt()
   skip_no_gt_fn("opt_stylize")
   d <- data.frame(g = c("A", "A", "B"), k = c("r1", "r2", "r3"), v = 1:3,
@@ -81,7 +81,7 @@ test_that("styles written at an offset land at the offset", {
 # is written into the fixture: every cell carries a distinct style and the
 # sheet has to reproduce each one, not the first one repeated.
 
-test_that("distinct inline styles are not collapsed onto their neighbours", {
+test_that("distinct inline styles are not collapsed onto their neighbors", {
   fills <- c("#FF0000", "#00FF00", "#0000FF", "#FFFF00", "#FF00FF", "#00FFFF")
   colors <- c("#000000", "#111111", "#222222", "#333333", "#444444", "#555555")
   tds <- paste0("<td style=\"background-color:", fills, ";color:", colors, "\">v",

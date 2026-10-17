@@ -118,8 +118,8 @@ selectors match on the tag alone, \verb{@media} conditions are ignored, and
 stylesheets pulled in with \verb{<link>} are not fetched.
 
 Properties with no spreadsheet equivalent, such as gradients, letter
-spacing and rounded corners, are dropped. \verb{<img>} and \verb{<svg>} leave an empty cell, and
-\verb{<a href>} keeps its text but not the link.
+spacing and rounded corners, are dropped. \verb{<img>} and \verb{<svg>} leave an empty
+cell.
 }
 
 \examples{

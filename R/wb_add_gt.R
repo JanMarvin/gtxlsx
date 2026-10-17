@@ -15,17 +15,16 @@
 #'
 #' Anything gt draws as a picture cannot be written to a cell.
 #' `gt::fmt_image()` and `gt::cols_nanoplot()` leave the cell empty,
-#' `gt::fmt_icon()` and `gt::fmt_flag()` fall back to their label text, and
-#' `gt::fmt_url()` keeps the link text but not the hyperlink.
+#' `gt::fmt_icon()` and `gt::fmt_flag()` fall back to their label text.
 #'
 #' @section Row striping:
-#' A striped table gets a fill on every body row, the striping colour on one
+#' A striped table gets a fill on every body row, the striping color on one
 #' and `table.background.color` on the next. Spreadsheet software leaves an
 #' unfilled cell transparent, so filling only half the rows would show the banding as
 #' detached blocks rather than a continuous column.
 #'
-#' The colour comes from gt, and gt's default is white. On a worksheet with a
-#' coloured background that white will cover the tint under the table. Set
+#' The color comes from gt, and gt's default is white. On a worksheet with a
+#' colored background that white will cover the tint under the table. Set
 #' `table.background.color` to match, or turn striping off, if that matters.
 #'
 #' @section Links:
@@ -39,12 +38,15 @@
 #' usable for arithmetic. Columns gt has scaled or suffixed (`1.2K` for
 #' `1200`) cannot be reproduced that way and stay text; those cells are
 #' marked so spreadsheet software does not flag them as numbers stored as
-#' text.
+#' text. The decision is made per column: if one cell cannot be reproduced,
+#' for example a cell with a footnote mark or one replaced with a dash by
+#' `text_transform()`, the whole column is written as text. Missing values
+#' shown with `sub_missing()` are the exception and leave the numbers alone.
 #'
 #' @param wb A `wbWorkbook` object, as returned by [openxlsx2::wb_workbook()].
 #' @param x A `gt_tbl` object, or a `gt_group` as returned by
-#'   [gt::gt_group()] or [gt::gt_split()]. A group is written one table after
-#'   another down the sheet.
+#'   `gt::gt_group()` or `gt::gt_split()`. A group is written one table
+#'   after another down the sheet.
 #' @param sheet The worksheet to write to. Defaults to the current sheet.
 #' @param dims Cell reference of the top left corner of the table, for example
 #'   `"B2"`.
@@ -62,10 +64,12 @@
 #' @param row_heights `NULL`, the default, leaves the spreadsheet software to size
 #'   the rows.
 #'   `"gt"` sets each row from the padding gt would have used, and a numeric
-#'   vector sets the heights directly. Both also centre the text vertically,
+#'   vector sets the heights directly. Both also center the text vertically,
 #'   since spreadsheet software aligns to the bottom of a cell and gt pads
 #'   evenly. Rows with wrapped text keep the software's own sizing, which a
-#'   fixed height would clip.
+#'   fixed height would clip. Footnotes and source notes are merged across the
+#'   table, and spreadsheet software does not fit the height of merged cells,
+#'   so their height is estimated from the table width.
 #' @param features What to write besides the values. `TRUE`, the default, is
 #'   all of them; `FALSE` writes values only. Otherwise a character vector of
 #'   any of `"font"`, `"fill"`, `"border"`, `"numfmt"`, `"merge"` and
@@ -159,8 +163,9 @@ wb_add_gt <- function(wb, x, sheet = current_sheet(), dims = "A1",
 }
 
 # A gt_group holds its tables as rows of a tibble; grp_pull() turns one back
-# into a gt_tbl. Each is measured before it is written so the next one knows
-# where to start.
+# into a gt_tbl. It only exists in newer gt versions, which any gt_group
+# comes from, so it is looked up here and not named with ::. Each table is
+# measured before it is written so the next one knows where to start.
 write_gt_group <- function(wb, x, sheet, dims, gap, ...) {
   need_gt()
   # gt keeps the tables as rows of a tibble; guard against that becoming a
@@ -281,7 +286,7 @@ gtxlsx_write_body <- function(cc, g, th, p, numeric = TRUE, convert_date = TRUE)
       }
     }
 
-    # Every cell in a column shares its font, size, colour and alignment; only
+    # Every cell in a column shares its font, size, color and alignment; only
     # the fill and the indent vary. Building each variant once and passing it
     # by reference keeps put_cell cheap and lets render_cells group the cells
     # without deriving a signature per record.

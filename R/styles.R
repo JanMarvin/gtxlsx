@@ -261,8 +261,8 @@ gtxlsx_borders <- function(wb, sheet, cc, g, th, p, cols) {
     do.call(wb$add_border, c(
       list(sheet = sheet, dims = rng(seq.int(r0, r1))),
       border_args(
-        # a colour without a style writes <right><color/></right>, a border side
-        # with no style attribute, so drop the colour with the style
+        # a color without a style writes <right><color/></right>, a border side
+        # with no style attribute, so drop the color with the style
         inner_hgrid = if (identical(hg, "none")) NULL else hg,
         inner_hcolor = if (identical(hg, "none")) NULL else wbc(oc("table_body_hlines")),
         inner_vgrid = if (identical(vg, "none")) NULL else vg,

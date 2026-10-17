@@ -64,8 +64,8 @@ test_that("an unknown feature is refused by name", {
   skip_no_gt()
   expect_error(
     wb_add_gt(openxlsx2::wb_workbook()$add_worksheet(), styled_gt(),
-              features = "colour"),
-    "unknown feature: colour"
+              features = "color"),
+    "unknown feature: color"
   )
 })
 

@@ -58,7 +58,7 @@ pt$defineCalculation(calculationName = "TotalTrains", summariseExpression = "n()
 pt$evaluatePivot()
 wb <- add(wb, "outline", pt)
 
-# 4 -- a coloured theme --------------------------------------------------------
+# 4 -- a colored theme --------------------------------------------------------
 pt <- PivotTable$new()
 pt$addData(bhmtrains)
 pt$addColumnDataGroups("TrainCategory")

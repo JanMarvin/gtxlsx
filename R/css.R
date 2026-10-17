@@ -47,7 +47,7 @@ css_hex <- function(x) {
     }
     return(NULL)
   }
-  # R's colour names are the X11 set; several basic CSS names disagree
+  # R's color names are the X11 set; several basic CSS names disagree
   css_named <- c(green = "008000", purple = "800080", gray = "808080",
                  grey = "808080", maroon = "800000", olive = "808000",
                  teal = "008080", silver = "C0C0C0", lime = "00FF00",
