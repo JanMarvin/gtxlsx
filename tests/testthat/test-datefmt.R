@@ -86,7 +86,7 @@ test_that("convert_date = FALSE keeps the printed text", {
 
 test_that("a gt_group passes the conversion switches on", {
   skip_if_not_installed("gt")
-  skip_if_not("gt_group" %in% getNamespaceExports("gt"))
+  skip_no_gt_fn("gt_group", "grp_pull")
   grp <- gt::gt_group(
     gt::fmt_date(gt::gt(data.frame(d = as.Date("2026-01-31"))), d)
   )

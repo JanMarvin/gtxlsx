@@ -163,9 +163,8 @@ wb_add_gt <- function(wb, x, sheet = current_sheet(), dims = "A1",
 }
 
 # A gt_group holds its tables as rows of a tibble; grp_pull() turns one back
-# into a gt_tbl. It only exists in newer gt versions, which any gt_group
-# comes from, so it is looked up here and not named with ::. Each table is
-# measured before it is written so the next one knows where to start.
+# into a gt_tbl. Each table is measured before it is written so the next one
+# knows where to start.
 write_gt_group <- function(wb, x, sheet, dims, gap, ...) {
   need_gt()
   # gt keeps the tables as rows of a tibble; guard against that becoming a

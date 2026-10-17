@@ -247,7 +247,7 @@ test_that("a tab_style fill on one row stays on that row", {
 
 test_that("a gt_group is written one table after another", {
   skip_no_gt()
-  skip_no_gt_fn("gt_group")
+  skip_no_gt_fn("gt_group", "grp_pull")
   grp <- gt::gt_group(
     gt::tab_header(gt::gt(data.frame(a = c("x", "y"))), title = "First"),
     gt::tab_header(gt::gt(data.frame(a = c("p", "q", "r"))), title = "Second")
@@ -263,7 +263,7 @@ test_that("a gt_group is written one table after another", {
 
 test_that("gap controls the space between grouped tables", {
   skip_no_gt()
-  skip_no_gt_fn("gt_group")
+  skip_no_gt_fn("gt_group", "grp_pull")
   grp <- gt::gt_group(gt::gt(data.frame(a = "x")), gt::gt(data.frame(a = "y")))
 
   tight <- wb_add_gt(openxlsx2::wb_workbook()$add_worksheet(), grp,
@@ -277,7 +277,7 @@ test_that("gap controls the space between grouped tables", {
 
 test_that("gt_split output is written as a group", {
   skip_no_gt()
-  skip_no_gt_fn("gt_split")
+  skip_no_gt_fn("gt_split", "grp_pull")
   d <- data.frame(a = paste0("r", 1:6), stringsAsFactors = FALSE)
   sp <- gt::gt_split(gt::gt(d), row_every_n = 3)
 
