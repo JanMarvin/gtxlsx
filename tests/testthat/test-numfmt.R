@@ -110,3 +110,15 @@ test_that("mark arguments are checked", {
   expect_error(text_as_numbers("1", big_mark = c(",", ".")), "single character")
   expect_error(text_as_numbers("1", dec_mark = ".", big_mark = "."), "must differ")
 })
+
+test_that("french style spaces are read as group marks", {
+  for (sp in c(" ", " ", " ", " ")) {
+    out <- text_as_numbers(c(paste0("1", sp, "000", sp, "000"),
+                             paste0("2", sp, "500"), "999"))
+    expect_equal(out$value, c(1e6, 2500, 999))
+    expect_equal(out$numfmt[1L], "#,##0")
+    dec <- text_as_numbers(c(paste0("1", sp, "234,50"), "12,00", "0,50"))
+    expect_equal(dec$value, c(1234.5, 12, 0.5))
+    expect_equal(dec$numfmt[1L], "#,##0.00")
+  }
+})

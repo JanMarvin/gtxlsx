@@ -12,7 +12,7 @@ num_pattern <- function(big, dec) {
          "(?:(?<decm>", cls(dec), ")(?<dec>[0-9]+))?(?<suf>[^0-9]*)$")
 }
 
-default_big <- c(",", "\u00a0", " ", ".", "'")
+default_big <- c(",", "\u00a0", "\u202f", "\u2009", " ", ".", "'")
 default_dec <- c(".", ",")
 num_pat <- num_pattern(default_big, default_dec)
 
@@ -127,9 +127,9 @@ quote_affix_v <- function(x) {
 
 # What each cell says about the marks, read by the broad pattern: a group mark
 # is certain when the number holds two of them, when a decimal mark follows it,
-# or when it is a space, a no-break space or an apostrophe; a decimal mark is
-# certain when it follows digits that are not a group. A single "." or "," in
-# front of exactly three digits proves nothing.
+# or when it is a space (also no-break, narrow and thin) or an apostrophe; a
+# decimal mark is certain when it follows digits that are not a group. A
+# single "." or "," in front of exactly three digits proves nothing.
 read_num_cells <- function(xs, pat) {
   parts <- regmatches(xs, regexec(pat, xs, perl = TRUE))
   hit <- lengths(parts) == 8L
@@ -152,7 +152,8 @@ mark_evidence <- function(xs) {
   r <- r[r$symbols & !r$mixed, ]
   lone_zero <- r$lead_zero & r$n_marks == 1L & !nzchar(r$decm)
   sure_big <- nzchar(r$grp) & !lone_zero &
-    (r$n_marks >= 2L | nzchar(r$decm) | r$grp %in% c(" ", "\u00a0", "'"))
+    (r$n_marks >= 2L | nzchar(r$decm) |
+       r$grp %in% c(" ", "\u00a0", "\u202f", "\u2009", "'"))
   sure_dec <- c(r$decm[nzchar(r$decm)], r$grp[lone_zero])
   big <- unique(r$grp[sure_big])
   dec <- unique(sure_dec)
