@@ -74,10 +74,13 @@ wb_add_gt(
 
   `NULL`, the default, leaves the spreadsheet software to size the rows.
   `"gt"` sets each row from the padding gt would have used, and a
-  numeric vector sets the heights directly. Both also centre the text
+  numeric vector sets the heights directly. Both also center the text
   vertically, since spreadsheet software aligns to the bottom of a cell
   and gt pads evenly. Rows with wrapped text keep the software's own
-  sizing, which a fixed height would clip.
+  sizing, which a fixed height would clip. Footnotes and source notes
+  are merged across the table, and spreadsheet software does not fit the
+  height of merged cells, so their height is estimated from the table
+  width.
 
 - ignore_errors:
 
@@ -134,20 +137,18 @@ Anything gt draws as a picture cannot be written to a cell.
 leave the cell empty,
 [`gt::fmt_icon()`](https://gt.rstudio.com/reference/fmt_icon.html) and
 [`gt::fmt_flag()`](https://gt.rstudio.com/reference/fmt_flag.html) fall
-back to their label text, and
-[`gt::fmt_url()`](https://gt.rstudio.com/reference/fmt_url.html) keeps
-the link text but not the hyperlink.
+back to their label text.
 
 ## Row striping
 
-A striped table gets a fill on every body row, the striping colour on
-one and `table.background.color` on the next. Spreadsheet software
-leaves an unfilled cell transparent, so filling only half the rows would
-show the banding as detached blocks rather than a continuous column.
+A striped table gets a fill on every body row, the striping color on one
+and `table.background.color` on the next. Spreadsheet software leaves an
+unfilled cell transparent, so filling only half the rows would show the
+banding as detached blocks rather than a continuous column.
 
-The colour comes from gt, and gt's default is white. On a worksheet with
-a coloured background that white will cover the tint under the table.
-Set `table.background.color` to match, or turn striping off, if that
+The color comes from gt, and gt's default is white. On a worksheet with
+a colored background that white will cover the tint under the table. Set
+`table.background.color` to match, or turn striping off, if that
 matters.
 
 ## Links
@@ -165,7 +166,13 @@ spreadsheet number format can reproduce exactly what gt displays.
 the sheet stays usable for arithmetic. Columns gt has scaled or suffixed
 (`1.2K` for `1200`) cannot be reproduced that way and stay text; those
 cells are marked so spreadsheet software does not flag them as numbers
-stored as text.
+stored as text. The decision is made per column: if one cell cannot be
+reproduced, for example a cell with a footnote mark or one replaced with
+a dash by
+[`text_transform()`](https://gt.rstudio.com/reference/text_transform.html),
+the whole column is written as text. Missing values shown with
+[`sub_missing()`](https://gt.rstudio.com/reference/sub_missing.html) are
+the exception and leave the numbers alone.
 
 ## See also
 

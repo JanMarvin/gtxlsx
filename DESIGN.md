@@ -90,7 +90,7 @@ weights, padding, striping. Two details worth knowing:
 
 - Font sizes are CSS pixels; spreadsheets want points. `css_pt()`
   converts, so gt’s default `16px` becomes `12pt` rather than `16pt`.
-- gt does not store a text colour per region. It computes one from that
+- gt does not store a text color per region. It computes one from that
   region’s background with a luminance rule in `gt_colors.scss`.
   `luminance()` reproduces it, which is why a dark column-label
   background gets white text.
@@ -299,8 +299,8 @@ of those come back.
 
 Three layers, because they catch different things.
 
-*Unit tests* cover the pure functions — colour and length conversion,
-the inline tokeniser, number format inference, the cell buffer.
+*Unit tests* cover the pure functions — color and length conversion, the
+inline tokeniser, number format inference, the cell buffer.
 
 *Fidelity tests* (`test-fidelity.R`) walk gt’s `_styles` table, resolve
 each entry to cells through the layout, and compare the workbook against
@@ -385,8 +385,7 @@ sheet.
 ## Known limits
 
 - **Graphics.** `fmt_image()` and `cols_nanoplot()` leave the cell
-  empty; `fmt_icon()` and `fmt_flag()` fall back to their label text;
-  `fmt_url()` keeps the link text but not the hyperlink.
+  empty; `fmt_icon()` and `fmt_flag()` fall back to their label text.
 - **CSS.** Sibling combinators, attribute selectors, external
   stylesheets and `@media` conditions are approximated or ignored.
 - **Not carried over.** `tab_caption()` (which gt does not render

@@ -151,7 +151,7 @@ stylesheets pulled in with `<link>` are not fetched.
 
 Properties with no spreadsheet equivalent, such as gradients, letter
 spacing and rounded corners, are dropped. `<img>` and `<svg>` leave an
-empty cell, and `<a href>` keeps its text but not the link.
+empty cell.
 
 ## See also
 

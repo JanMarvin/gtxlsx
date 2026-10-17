@@ -75,8 +75,8 @@ block starting at <code>dims</code>.</p>
 
 <dt id="arg-x">x<a class="anchor" aria-label="anchor" href="#arg-x"></a></dt>
 <dd><p>A <code>gt_tbl</code> object, or a <code>gt_group</code> as returned by
-<code><a href="https://gt.rstudio.com/reference/gt_group.html" class="external-link">gt::gt_group()</a></code> or <code><a href="https://gt.rstudio.com/reference/gt_split.html" class="external-link">gt::gt_split()</a></code>. A group is written one table after
-another down the sheet.</p></dd>
+<code><a href="https://gt.rstudio.com/reference/gt_group.html" class="external-link">gt::gt_group()</a></code> or <code><a href="https://gt.rstudio.com/reference/gt_split.html" class="external-link">gt::gt_split()</a></code>. A group is written one table
+after another down the sheet.</p></dd>
 
 
 <dt id="arg-sheet">sheet<a class="anchor" aria-label="anchor" href="#arg-sheet"></a></dt>
@@ -112,10 +112,12 @@ them alone. Widths set with <code><a href="https://gt.rstudio.com/reference/cols
 <dd><p><code>NULL</code>, the default, leaves the spreadsheet software to size
 the rows.
 <code>"gt"</code> sets each row from the padding gt would have used, and a numeric
-vector sets the heights directly. Both also centre the text vertically,
+vector sets the heights directly. Both also center the text vertically,
 since spreadsheet software aligns to the bottom of a cell and gt pads
 evenly. Rows with wrapped text keep the software's own sizing, which a
-fixed height would clip.</p></dd>
+fixed height would clip. Footnotes and source notes are merged across the
+table, and spreadsheet software does not fit the height of merged cells,
+so their height is estimated from the table width.</p></dd>
 
 
 <dt id="arg-ignore-errors">ignore_errors<a class="anchor" aria-label="anchor" href="#arg-ignore-errors"></a></dt>
@@ -163,19 +165,18 @@ becomes fonts, fills, alignment and borders; markup inside a cell (bold,
 italic, superscripts, line breaks) becomes rich text.</p>
 <p>Anything gt draws as a picture cannot be written to a cell.
 <code><a href="https://gt.rstudio.com/reference/fmt_image.html" class="external-link">gt::fmt_image()</a></code> and <code><a href="https://gt.rstudio.com/reference/cols_nanoplot.html" class="external-link">gt::cols_nanoplot()</a></code> leave the cell empty,
-<code><a href="https://gt.rstudio.com/reference/fmt_icon.html" class="external-link">gt::fmt_icon()</a></code> and <code><a href="https://gt.rstudio.com/reference/fmt_flag.html" class="external-link">gt::fmt_flag()</a></code> fall back to their label text, and
-<code><a href="https://gt.rstudio.com/reference/fmt_url.html" class="external-link">gt::fmt_url()</a></code> keeps the link text but not the hyperlink.</p>
+<code><a href="https://gt.rstudio.com/reference/fmt_icon.html" class="external-link">gt::fmt_icon()</a></code> and <code><a href="https://gt.rstudio.com/reference/fmt_flag.html" class="external-link">gt::fmt_flag()</a></code> fall back to their label text.</p>
     </div>
     <div class="section level2">
     <h2 id="row-striping">Row striping<a class="anchor" aria-label="anchor" href="#row-striping"></a></h2>
 
 
-<p>A striped table gets a fill on every body row, the striping colour on one
+<p>A striped table gets a fill on every body row, the striping color on one
 and <code>table.background.color</code> on the next. Spreadsheet software leaves an
 unfilled cell transparent, so filling only half the rows would show the banding as
 detached blocks rather than a continuous column.</p>
-<p>The colour comes from gt, and gt's default is white. On a worksheet with a
-coloured background that white will cover the tint under the table. Set
+<p>The color comes from gt, and gt's default is white. On a worksheet with a
+colored background that white will cover the tint under the table. Set
 <code>table.background.color</code> to match, or turn striping off, if that matters.</p>
     </div>
     <div class="section level2">
@@ -195,7 +196,10 @@ the value <code>1234.5</code> with the format <code>"$"#,##0.00</code>, so the s
 usable for arithmetic. Columns gt has scaled or suffixed (<code>1.2K</code> for
 <code>1200</code>) cannot be reproduced that way and stay text; those cells are
 marked so spreadsheet software does not flag them as numbers stored as
-text.</p>
+text. The decision is made per column: if one cell cannot be reproduced,
+for example a cell with a footnote mark or one replaced with a dash by
+<code><a href="https://gt.rstudio.com/reference/text_transform.html" class="external-link">text_transform()</a></code>, the whole column is written as text. Missing values
+shown with <code><a href="https://gt.rstudio.com/reference/sub_missing.html" class="external-link">sub_missing()</a></code> are the exception and leave the numbers alone.</p>
     </div>
     <div class="section level2">
     <h2 id="see-also">See also<a class="anchor" aria-label="anchor" href="#see-also"></a></h2>

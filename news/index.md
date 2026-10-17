@@ -110,7 +110,7 @@ CRAN release: 2026-10-08
   keep their borders.
 
 - New `row_heights` argument, off by default, sets row heights from gt’s
-  padding and centres the text to match.
+  padding and centers the text to match.
 
 ## gtxlsx 0.1.1
 

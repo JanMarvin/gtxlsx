@@ -63,7 +63,7 @@
 <p>Two things follow. Bugs found in gt are reported as gt bugs, demonstrated through gt’s own output, with no mention of this package. And nothing is asked of gt that only makes sense because of the internal access. The clean way out, if it ever comes, is gt exporting an accessor for a built table, which would turn this from taking something into using something.</p>
 <p><code>gtxlsx_theme()</code> reduces gt’s ~200 <code>tab_options()</code> entries to the two dozen values the writer needs: fonts and sizes per region, fills, weights, padding, striping. Two details worth knowing:</p>
 <ul><li>Font sizes are CSS pixels; spreadsheets want points. <code>css_pt()</code> converts, so gt’s default <code>16px</code> becomes <code>12pt</code> rather than <code>16pt</code>.</li>
-<li>gt does not store a text colour per region. It computes one from that region’s background with a luminance rule in <code>gt_colors.scss</code>. <code>luminance()</code> reproduces it, which is why a dark column-label background gets white text.</li>
+<li>gt does not store a text color per region. It computes one from that region’s background with a luminance rule in <code>gt_colors.scss</code>. <code>luminance()</code> reproduces it, which is why a dark column-label background gets white text.</li>
 </ul></div>
 </div>
 <div class="section level2">
@@ -127,7 +127,7 @@
 <div class="section level2">
 <h2 id="testing">Testing<a class="anchor" aria-label="anchor" href="#testing"></a></h2>
 <p>Three layers, because they catch different things.</p>
-<p><em>Unit tests</em> cover the pure functions — colour and length conversion, the inline tokeniser, number format inference, the cell buffer.</p>
+<p><em>Unit tests</em> cover the pure functions — color and length conversion, the inline tokeniser, number format inference, the cell buffer.</p>
 <p><em>Fidelity tests</em> (<code>test-fidelity.R</code>) walk gt’s <code>_styles</code> table, resolve each entry to cells through the layout, and compare the workbook against what gt declared. Later styles win over earlier ones, as in gt.</p>
 <p><em>Stylesheet tests</em> (<code>test-css-fidelity.R</code>) cover what <code>_styles</code> cannot see. They render the table with <code>as_raw_html()</code>, parse the CSS with the package’s own reader, and compare each region — title, spanner, labels, group heading, stub, body, summary, notes — against the cells it was written to. This is the layer that catches <code>tab_options()</code> regressions: a forced bold, a missing spanner border, absent column-label vertical rules.</p>
 <p>The useful discipline is checking that a new test <em>fails</em> when the bug it was written for is reintroduced. Several tests here looked fine and were inert until that was done.</p>
@@ -161,7 +161,7 @@
 <div class="section level2">
 <h2 id="known-limits">Known limits<a class="anchor" aria-label="anchor" href="#known-limits"></a></h2>
 <ul><li>
-<strong>Graphics.</strong> <code>fmt_image()</code> and <code>cols_nanoplot()</code> leave the cell empty; <code>fmt_icon()</code> and <code>fmt_flag()</code> fall back to their label text; <code>fmt_url()</code> keeps the link text but not the hyperlink.</li>
+<strong>Graphics.</strong> <code>fmt_image()</code> and <code>cols_nanoplot()</code> leave the cell empty; <code>fmt_icon()</code> and <code>fmt_flag()</code> fall back to their label text.</li>
 <li>
 <strong>CSS.</strong> Sibling combinators, attribute selectors, external stylesheets and <code>@media</code> conditions are approximated or ignored.</li>
 <li>
