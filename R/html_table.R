@@ -483,6 +483,17 @@ html_grid <- function(doc, tbl) {
   }
   cells <- cells[seq_len(nc)]
   head_rows <- sum(sec == "head")
+  if (head_rows == 0L) {
+    # pages often write their header as leading rows of <th> without a <thead>
+    cell_row <- vapply(cells, function(z) z$row, integer(1L))
+    cell_th <- vapply(cells, function(z) identical(z$tag, "th"), logical(1L))
+    row_th <- logical(n)
+    for (i in seq_len(n)) {
+      row_th[i] <- any(cell_row == i) && all(cell_th[cell_row == i])
+    }
+    lead <- sum(cumsum(!row_th) == 0L)
+    if (lead < n) head_rows <- lead
+  }
   # a leading column of <th> is a stub, the way gt's row labels are
   first_col <- vapply(cells, function(z) z$col == 1L, logical(1L))
   head_tags <- vapply(cells[first_col], function(z) identical(z$tag, "th"),

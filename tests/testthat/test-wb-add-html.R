@@ -477,3 +477,32 @@ test_that("convert_date and numeric switch the conversions off", {
   expect_equal(cc(convert_date = FALSE)$c_t, c("inlineStr", ""))
   expect_equal(cc(numeric = FALSE)$c_t, c("", "inlineStr"))
 })
+
+test_that("freeze finds the header with and without a thead", {
+  pane <- function(html, ...) {
+    wb <- wb_add_html(openxlsx2::wb_workbook()$add_worksheet("x"), html,
+                      freeze = TRUE, ...)
+    f <- tempfile(fileext = ".xlsx")
+    on.exit(unlink(f), add = TRUE)
+    wb$save(f)
+    d <- tempfile()
+    on.exit(unlink(d, recursive = TRUE), add = TRUE)
+    utils::unzip(f, exdir = d)
+    xml <- paste(readLines(file.path(d, "xl/worksheets/sheet1.xml"), warn = FALSE),
+                 collapse = "")
+    regmatches(xml, regexpr("<pane[^>]*>", xml))
+  }
+  body <- "<tr><td>1</td><td>2</td></tr></tbody></table>"
+  with_thead <- pane(paste0("<table><thead><tr><th>a</th><th>b</th></tr></thead><tbody>",
+                            body))
+  expect_match(with_thead, 'ySplit="1"', fixed = TRUE)
+  in_tbody <- pane(paste0("<table><tbody><tr><th>a</th><th>b</th></tr>", body))
+  expect_match(in_tbody, 'ySplit="1"', fixed = TRUE)
+  two <- pane(paste0("<table><tbody><tr><th colspan=\"2\">x</th></tr>",
+                     "<tr><th>a</th><th>b</th></tr>", body))
+  expect_match(two, 'ySplit="2"', fixed = TRUE)
+  plain <- pane("<table><tr><td>1</td><td>2</td></tr></table>")
+  expect_length(plain, 0L)
+  all_th <- pane("<table><tr><th>a</th><th>b</th></tr></table>")
+  expect_false(grepl("ySplit", all_th, fixed = TRUE))
+})
