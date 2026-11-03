@@ -2,6 +2,12 @@
 
 ## gtxlsx (development version)
 
+- A
+  [`gt::tab_footnote()`](https://gt.rstudio.com/reference/tab_footnote.html)
+  without `locations` is no longer dropped. It is written below the
+  table without a mark, ahead of the marked footnotes, the way gt lists
+  it ([\#3](https://github.com/JanMarvin/gtxlsx/issues/3)).
+
 - Dates are no longer always written as text.
   [`wb_add_gt()`](../reference/wb_add_gt.md) writes a `Date`, date-time
   or ISO text column as spreadsheet dates when the printed text is
