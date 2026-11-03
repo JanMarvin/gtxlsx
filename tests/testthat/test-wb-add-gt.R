@@ -318,3 +318,21 @@ test_that("fmt_url and fmt_email produce working links", {
   refs <- sub('.*ref="([A-Z]+[0-9]+)".*', "\\1", links)
   expect_setequal(refs, c("B2", "B3"))
 })
+
+test_that("a footnote without a location is written, unmarked, before the others", {
+  skip_no_gt()
+  tbl <- gt::gt(data.frame(a = c(1, 2), b = c("x", "y"))) |>
+    gt::tab_footnote("with a location",
+                     locations = gt::cells_column_labels(columns = a)) |>
+    gt::tab_footnote("without a location")
+  wb <- wb_add_gt(openxlsx2::wb_workbook()$add_worksheet("x"), tbl, dims = "A1")
+  df <- openxlsx2::wb_to_df(wb, col_names = FALSE, skip_empty_rows = FALSE)
+  notes <- as.character(df[[1L]])
+  expect_true("without a location" %in% notes)
+  expect_true(any(grepl("with a location", notes, fixed = TRUE)))
+  expect_lt(match("without a location", notes), grep("^1 with", notes))
+  only <- gt::gt(data.frame(a = 1)) |> gt::tab_footnote("only a note")
+  wb <- wb_add_gt(openxlsx2::wb_workbook()$add_worksheet("x"), only, dims = "A1")
+  df <- openxlsx2::wb_to_df(wb, col_names = FALSE, skip_empty_rows = FALSE)
+  expect_true("only a note" %in% as.character(df[[1L]]))
+})

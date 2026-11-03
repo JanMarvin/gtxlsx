@@ -1,5 +1,9 @@
 # gtxlsx (development version)
 
+* A `gt::tab_footnote()` without `locations` is no longer dropped. It is written
+  below the table without a mark, ahead of the marked footnotes, the way gt
+  lists it (#3).
+
 * Dates are no longer always written as text. `wb_add_gt()` writes a `Date`,
   date-time or ISO text column as spreadsheet dates when the printed text is
   exactly what one of gt's date or time styles gives for the stored value, and
