@@ -100,10 +100,12 @@ gtxlsx_plan <- function(g, th, row0, col0) {
   fn <- if (is.null(fnotes) || !nrow(fnotes)) {
     data.frame(mark = character(0L), text = character(0L), stringsAsFactors = FALSE)
   } else {
+    # a footnote without a location has no mark; gt lists it first, unmarked
     d <- unique(data.frame(mark = as.character(fnotes$fs_id %||% NA_character_),
                            text = fnotes$text %||% NA_character_,
                            stringsAsFactors = FALSE))
-    d[!is.na(d$mark) & nzchar(d$mark), , drop = FALSE]
+    d$mark[is.na(d$mark)] <- ""
+    d[!is.na(d$text), , drop = FALSE]
   }
   footnote_rows <- if (nrow(fn)) {
     out <- r + seq_len(nrow(fn)) - 1L

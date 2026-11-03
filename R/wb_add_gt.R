@@ -403,7 +403,11 @@ gtxlsx_write_notes <- function(cc, g, th, p, cols) {
   fn <- p$footnotes
   for (i in seq_along(p$footnote_rows)) {
     row <- p$footnote_rows[i]
-    txt <- paste0("<sup>", fn$mark[i], "</sup> ", fn$text[i])
+    txt <- if (nzchar(fn$mark[i])) {
+      paste0("<sup>", fn$mark[i], "</sup> ", fn$text[i])
+    } else {
+      fn$text[i]
+    }
     put_cell(cc, row, cols[1L], txt, rich = TRUE, size = th$footnote_size,
              font = th$font, color = th$footnote_color, halign = "left",
              fill = th$footnote_fill, wrap = TRUE)
@@ -527,7 +531,7 @@ gtxlsx_note_heights <- function(wb, sheet, g, th, p, widths) {
   fn <- p$footnotes
   for (i in seq_along(p$footnote_rows)) {
     rows <- c(rows, p$footnote_rows[i])
-    txt <- paste(fn$mark[i], fn$text[i])
+    txt <- trimws(paste(fn$mark[i], fn$text[i]))
     heights <- c(heights, est(txt, th$footnote_size, th$pad_footnote))
   }
   for (i in seq_along(p$source_rows)) {
