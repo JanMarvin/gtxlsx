@@ -519,7 +519,11 @@ count_wrapped_lines <- function(txt, width) {
 # text, so footnotes and source notes, which are merged across the table, get
 # a height estimated from the merged width and a greedy word wrap.
 gtxlsx_note_heights <- function(wb, sheet, g, th, p, widths) {
-  per_line <- function(size) max(floor(sum(widths) * 11 / size), 1)
+  # A column width counts the digit width of the default font, and running text
+  # is narrower than digits: about 1.25 characters fit per unit at 11 pt in
+  # LibreOffice measurements. 1.2 keeps the estimate on the safe side, so a note
+  # is never cut off, and a short note is not given a second line it does not need.
+  per_line <- function(size) max(floor(sum(widths) * 1.2 * 11 / size), 1)
   est <- function(txt, size, pad) {
     lines <- count_wrapped_lines(txt, per_line(size))
     if (lines < 2L) return(NA_real_)
