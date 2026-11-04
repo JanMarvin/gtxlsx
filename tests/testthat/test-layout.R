@@ -112,3 +112,18 @@ test_that("wrapped rows keep the software's own sizing", {
   wb <- wb_add_gt(wb, tbl, dims = "A1", row_heights = "gt")
   expect_true(is.na(row_height(wb, p$source_rows[1L])))
 })
+
+test_that("a short note keeps its row height and a long one is made taller", {
+  skip_no_gt()
+  heights <- function(note) {
+    tbl <- gt::tab_source_note(small_gt(), note)
+    wb <- wb_add_gt(openxlsx2::wb_workbook()$add_worksheet("x"), tbl, dims = "A1")
+    ra <- wb$worksheets[[1L]]$sheet_data$row_attr
+    last <- ra[which.max(as.integer(ra$r)), ]
+    as.numeric(last$ht)
+  }
+  expect_true(is.na(heights("Largest single category.")))
+  long <- paste(rep("a source note that has to wrap over several lines", 4),
+                collapse = " ")
+  expect_gt(heights(long), 30)
+})
