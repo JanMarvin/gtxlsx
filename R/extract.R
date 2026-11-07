@@ -52,6 +52,8 @@ gtxlsx_extract <- function(x, context = "html") {
     grps$group_label <- chr_col(lbl)
     na <- is.na(grps$group_label)
     grps$group_label[na] <- as.character(grps$group_id)[na]
+    # gt prints a missing group id as the text NA
+    grps$group_label[is.na(grps$group_label)] <- "NA"
   }
   if (!is.null(spanners) && nrow(spanners)) {
     spanners$built <- chr_col(spanners$built %||% spanners$spanner_label)

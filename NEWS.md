@@ -1,5 +1,7 @@
 # gtxlsx (development version)
 
+* A row group with a missing id gets the heading `NA`, the way gt prints it.
+
 * Text such as `<1.00>` from `fmt_number(pattern = "<{x}>")` is no longer
   mistaken for a tag and stripped.
 

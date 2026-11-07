@@ -374,3 +374,10 @@ test_that("a nanoplot leaves no svg or css text in the cell", {
   txt <- unlist(openxlsx2::wb_to_df(wb, col_names = FALSE))
   expect_false(any(grepl("font-family|stroke", txt)))
 })
+
+test_that("a missing group id gets the heading gt prints", {
+  skip_if_not_installed("gt")
+  tbl <- gt::gt(data.frame(a = 1:2, g = c("x", NA)), groupname_col = "g")
+  wb <- wb_add_gt(openxlsx2::wb_workbook()$add_worksheet("x"), tbl)
+  expect_true("NA" %in% openxlsx2::wb_to_df(wb, col_names = FALSE)[[1L]])
+})
