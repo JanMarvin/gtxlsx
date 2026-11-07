@@ -7,7 +7,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">gtxlsx</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.4.3</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.5.0</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -33,8 +33,14 @@
     </div>
 
     <div class="section level2">
-<h2 class="pkg-version" data-toc-text="development version" id="gtxlsx-development-version">gtxlsx (development version)<a class="anchor" aria-label="anchor" href="#gtxlsx-development-version"></a></h2>
-<ul><li><p>A <code><a href="https://gt.rstudio.com/reference/tab_footnote.html" class="external-link">gt::tab_footnote()</a></code> without <code>locations</code> is no longer dropped. It is written below the table without a mark, ahead of the marked footnotes, the way gt lists it (<a href="https://github.com/JanMarvin/gtxlsx/issues/3" class="external-link">#3</a>).</p></li>
+<h2 class="pkg-version" data-toc-text="0.5.0" id="gtxlsx-050">gtxlsx 0.5.0<a class="anchor" aria-label="anchor" href="#gtxlsx-050"></a></h2>
+<ul><li><p>A row group with a missing id gets the heading <code>NA</code>, the way gt prints it.</p></li>
+<li><p>Text such as <code>&lt;1.00&gt;</code> from <code>fmt_number(pattern = "&lt;{x}&gt;")</code> is no longer mistaken for a tag and stripped.</p></li>
+<li><p>A percent with a space (<code>10.00 %</code>) keeps the space in the number format.</p></li>
+<li><p><code><a href="https://gt.rstudio.com/reference/cols_width.html" class="external-link">gt::cols_width()</a></code> in pixels is applied again; the width was read as missing.</p></li>
+<li><p>A <code><a href="https://gt.rstudio.com/reference/cols_nanoplot.html" class="external-link">gt::cols_nanoplot()</a></code> cell no longer holds the svg’s CSS as text.</p></li>
+<li><p><code><a href="https://gt.rstudio.com/reference/tab_caption.html" class="external-link">gt::tab_caption()</a></code> is written above the table, and <code><a href="https://gt.rstudio.com/reference/summary_rows.html" class="external-link">summary_rows()</a></code> / <code><a href="https://gt.rstudio.com/reference/grand_summary_rows.html" class="external-link">grand_summary_rows()</a></code> with <code>side = "top"</code> are written at the top of their group (or the body) instead of the bottom.</p></li>
+<li><p>A <code><a href="https://gt.rstudio.com/reference/tab_footnote.html" class="external-link">gt::tab_footnote()</a></code> without <code>locations</code> is no longer dropped. It is written below the table without a mark, ahead of the marked footnotes, the way gt lists it (<a href="https://github.com/JanMarvin/gtxlsx/issues/3" class="external-link">#3</a>).</p></li>
 <li><p>Dates are no longer always written as text. <code><a href="../reference/wb_add_gt.html">wb_add_gt()</a></code> writes a <code>Date</code>, date-time or ISO text column as spreadsheet dates when the printed text is exactly what one of gt’s date or time styles gives for the stored value, and <code><a href="../reference/wb_add_html.html">wb_add_html()</a></code> does the same for whole days such as <code>31 January 2026</code>. Anything the format cannot reproduce stays text. The new <code>convert_date</code> argument of both functions switches this off.</p></li>
 <li><p><code><a href="../reference/wb_add_html.html">wb_add_html()</a></code> gains <code>dec_mark</code> and <code>big_mark</code>. Without them the marks are worked out from the whole table, and a table that uses two different ones is left as text with a warning. A number is only converted when the text comes back from the value, so <code>0.001</code> is no longer read as 1, <code>1.234</code> is not guessed to be 1234, and ids such as <code>007</code> stay text.</p></li>
 </ul></div>

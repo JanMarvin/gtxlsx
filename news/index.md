@@ -1,6 +1,30 @@
 # Changelog
 
-## gtxlsx (development version)
+## gtxlsx 0.5.0
+
+- A row group with a missing id gets the heading `NA`, the way gt prints
+  it.
+
+- Text such as `<1.00>` from `fmt_number(pattern = "<{x}>")` is no
+  longer mistaken for a tag and stripped.
+
+- A percent with a space (`10.00 %`) keeps the space in the number
+  format.
+
+- [`gt::cols_width()`](https://gt.rstudio.com/reference/cols_width.html)
+  in pixels is applied again; the width was read as missing.
+
+- A
+  [`gt::cols_nanoplot()`](https://gt.rstudio.com/reference/cols_nanoplot.html)
+  cell no longer holds the svg’s CSS as text.
+
+- [`gt::tab_caption()`](https://gt.rstudio.com/reference/tab_caption.html)
+  is written above the table, and
+  [`summary_rows()`](https://gt.rstudio.com/reference/summary_rows.html)
+  /
+  [`grand_summary_rows()`](https://gt.rstudio.com/reference/grand_summary_rows.html)
+  with `side = "top"` are written at the top of their group (or the
+  body) instead of the bottom.
 
 - A
   [`gt::tab_footnote()`](https://gt.rstudio.com/reference/tab_footnote.html)
