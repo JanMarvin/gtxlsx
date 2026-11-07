@@ -81,7 +81,7 @@ html_runs <- function(text, base_px = 16, resolver = NULL) {
   void <- c("br", "hr", "img", "wbr", "input", "col", "meta", "link")
 
   text <- html_drop_embedded(text)
-  m <- gregexpr("<[^>]*>", text, perl = TRUE)[[1]]
+  m <- gregexpr("<[A-Za-z/!][^>]*>", text, perl = TRUE)[[1]]
   starts <- as.integer(m)
   lens <- attr(m, "match.length")
   if (identical(starts[1L], -1L)) {
@@ -231,7 +231,7 @@ html_strip <- function(x) {
     if (is.na(s)) return(NA_character_)
     s <- html_drop_embedded(s)
     s <- gsub("<br[^>]*>|</p>", "\n", s, perl = TRUE)
-    trimws(html_unescape(gsub("<[^>]*>", "", s, perl = TRUE)), whitespace = "[\r\n]")
+    trimws(html_unescape(gsub("<[A-Za-z/!][^>]*>", "", s, perl = TRUE)), whitespace = "[\r\n]")
   }, character(1L), USE.NAMES = FALSE)
   out
 }

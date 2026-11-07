@@ -1,5 +1,10 @@
 # gtxlsx (development version)
 
+* Text such as `<1.00>` from `fmt_number(pattern = "<{x}>")` is no longer
+  mistaken for a tag and stripped.
+
+* A percent with a space (`10.00 %`) keeps the space in the number format.
+
 * `gt::cols_width()` in pixels is applied again; the width was read as missing.
 
 * A `gt::cols_nanoplot()` cell no longer holds the svg's CSS as text.
