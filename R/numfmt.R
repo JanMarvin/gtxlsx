@@ -114,6 +114,7 @@ infer_numfmt <- function(strings, values) {
   if (dec_n > 0L) body <- paste0(body, ".", strrep("0", dec_n))
   fmt <- paste0(quote_affix(trimws(pre)), body,
                 quote_affix(if (pct) "%" else trimws(suf)))
+  if (pct && grepl("^[[:space:]\u00a0]", suf)) fmt <- sub("%$", " %", fmt)
 
   out <- rep(NA_real_, length(strings))
   out[keep] <- values[keep]

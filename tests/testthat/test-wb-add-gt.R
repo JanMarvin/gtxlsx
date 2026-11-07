@@ -336,3 +336,49 @@ test_that("a footnote without a location is written, unmarked, before the others
   df <- openxlsx2::wb_to_df(wb, col_names = FALSE, skip_empty_rows = FALSE)
   expect_true("only a note" %in% as.character(df[[1L]]))
 })
+
+test_that("tab_caption() is written above the table", {
+  skip_if_not_installed("gt")
+  tbl <- gt::tab_caption(gt::gt(data.frame(a = 1:2)), "My caption")
+  wb <- wb_add_gt(openxlsx2::wb_workbook()$add_worksheet("x"), tbl)
+  df <- openxlsx2::wb_to_df(wb, col_names = FALSE)
+  expect_equal(df[1L, 1L], "My caption")
+  expect_equal(df[2L, 1L], "a")
+})
+
+test_that("summary rows on the top side follow the group heading", {
+  skip_if_not_installed("gt")
+  tbl <- gt::gt(data.frame(g = c("a", "a", "b"), v = c(1, 2, 3)), groupname_col = "g")
+  tbl <- gt::summary_rows(tbl, columns = v, fns = list(tot = ~ sum(.x)), side = "top")
+  tbl <- gt::grand_summary_rows(tbl, columns = v, fns = list(all = ~ sum(.x)),
+                                side = "top")
+  wb <- wb_add_gt(openxlsx2::wb_workbook()$add_worksheet("x"), tbl)
+  col1 <- openxlsx2::wb_to_df(wb, col_names = FALSE)[[1L]]
+  expect_equal(col1[1:3], c(NA, "all", "a"))
+  expect_equal(col1[4L], "tot")
+})
+
+test_that("cols_width() in pixels sets the column width", {
+  skip_if_not_installed("gt")
+  tbl <- gt::cols_width(gt::gt(data.frame(a = 1, b = 2)), a ~ gt::px(300))
+  wb <- wb_add_gt(openxlsx2::wb_workbook()$add_worksheet("x"), tbl)
+  w <- as.numeric(sub(".*width=\"([0-9.]+)\".*", "\\1", wb$worksheets[[1L]]$cols_attr))
+  expect_gt(w[1L], 30)
+  expect_lt(w[2L], 30)
+})
+
+test_that("a nanoplot leaves no svg or css text in the cell", {
+  skip_if_not_installed("gt")
+  skip_no_gt_fn("cols_nanoplot")
+  tbl <- gt::cols_nanoplot(gt::gt(data.frame(v = "1 2 3 4")), columns = v)
+  wb <- wb_add_gt(openxlsx2::wb_workbook()$add_worksheet("x"), tbl)
+  txt <- unlist(openxlsx2::wb_to_df(wb, col_names = FALSE))
+  expect_false(any(grepl("font-family|stroke", txt)))
+})
+
+test_that("a missing group id gets the heading gt prints", {
+  skip_if_not_installed("gt")
+  tbl <- gt::gt(data.frame(a = 1:2, g = c("x", NA)), groupname_col = "g")
+  wb <- wb_add_gt(openxlsx2::wb_workbook()$add_worksheet("x"), tbl)
+  expect_true("NA" %in% openxlsx2::wb_to_df(wb, col_names = FALSE)[[1L]])
+})

@@ -122,3 +122,13 @@ test_that("french style spaces are read as group marks", {
     expect_equal(dec$numfmt[1L], "#,##0.00")
   }
 })
+
+test_that("a spaced percent keeps its space", {
+  r <- infer_numfmt(c("10.00 %", "20.00 %"), c(0.1, 0.2))
+  expect_equal(r$numfmt, "0.00 %")
+})
+
+test_that("angle brackets that are not tags are kept", {
+  expect_equal(html_strip("<1.00>"), "<1.00>")
+  expect_equal(html_strip("a <b>b</b> < 3"), "a b < 3")
+})

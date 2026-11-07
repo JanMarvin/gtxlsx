@@ -193,6 +193,12 @@ write_gt_group <- function(wb, x, sheet, dims, gap, ...) {
 }
 
 gtxlsx_write_heading <- function(cc, g, th, p, cols) {
+  if (!is.na(p$caption_row)) {
+    txt <- g$caption
+    put_cell(cc, p$caption_row, cols[1L], txt, rich = is_rich(txt),
+             size = th$size, font = th$font, halign = "left")
+    add_merge(cc, p$caption_row, cols)
+  }
   if (!is.na(p$title_row)) {
     txt <- as.character(g$heading$title)[1L]
     put_cell(cc, p$title_row, cols[1L], txt, rich = is_rich(txt),
@@ -484,8 +490,10 @@ gtxlsx_col_widths <- function(wb, sheet, g, th, p, col_widths) {
     rep(NA_real_, length(p$col_vars))
   } else {
     vapply(p$col_vars, function(v) {
-      w <- boxh$column_width[[match(v, boxh$var)]]
-      if (is.null(w) || !length(w) || is.na(w[1L])) return(NA_real_)
+      w <- unlist(boxh$column_width[[match(v, boxh$var)]])
+      if (is.null(w) || !length(w) || is.na(w[1L]) || !grepl("px$", w[1L])) {
+        return(NA_real_)
+      }
       px_to_width(css_px(as.character(w)[1L]))
     }, numeric(1L))
   }

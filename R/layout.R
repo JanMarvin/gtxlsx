@@ -24,6 +24,11 @@ gtxlsx_plan <- function(g, th, row0, col0) {
   }
 
   r <- row0
+  caption_row <- NA_integer_
+  if (!is.null(g$caption)) {
+    caption_row <- r
+    r <- r + 1L
+  }
   title_row <- subtitle_row <- NA_integer_
   if (!is.null(g$heading$title)) {
     title_row <- r
@@ -67,7 +72,10 @@ gtxlsx_plan <- function(g, th, row0, col0) {
     r_at + nrow(sm)
   }
 
+  on_top <- function(key) identical(unname(g$summary_side[key]), "top")
+
   has_groups <- !is.null(grp) && nrow(grp) > 0L
+  if (on_top("::GRAND_SUMMARY")) r <- add_summary("::GRAND_SUMMARY", "grand_summary", r)
 
   if (has_groups) {
     for (i in seq_len(nrow(grp))) {
@@ -79,6 +87,7 @@ gtxlsx_plan <- function(g, th, row0, col0) {
         ))
         r <- r + 1L
       }
+      if (on_top(grp$group_id[i])) r <- add_summary(grp$group_id[i], "summary", r)
       body_row[idx] <- r + seq_along(idx) - 1L
       if (group_as_col) {
         group_span <- rbind(group_span, data.frame(
@@ -87,14 +96,14 @@ gtxlsx_plan <- function(g, th, row0, col0) {
         ))
       }
       r <- r + length(idx)
-      r <- add_summary(grp$group_id[i], "summary", r)
+      if (!on_top(grp$group_id[i])) r <- add_summary(grp$group_id[i], "summary", r)
     }
   } else if (nb > 0L) {
     body_row <- r + seq_len(nb) - 1L
     r <- r + nb
   }
 
-  r <- add_summary("::GRAND_SUMMARY", "grand_summary", r)
+  if (!on_top("::GRAND_SUMMARY")) r <- add_summary("::GRAND_SUMMARY", "grand_summary", r)
 
   fnotes <- g$footnotes
   fn <- if (is.null(fnotes) || !nrow(fnotes)) {
@@ -128,9 +137,9 @@ gtxlsx_plan <- function(g, th, row0, col0) {
     col_of = col_of, group_var = group_var, stub_vars = stub_vars,
     body_vars = body_vars, group_as_col = group_as_col,
     spanners = spanners, n_levels = n_levels, level_row = level_row,
-    title_row = title_row, subtitle_row = subtitle_row, label_row = label_row,
-    body_row = body_row, group_head = group_head, group_span = group_span,
-    summaries = acc$summaries, footnotes = fn, footnote_rows = footnote_rows,
-    source_rows = source_rows
+    caption_row = caption_row, title_row = title_row, subtitle_row = subtitle_row,
+    label_row = label_row, body_row = body_row, group_head = group_head,
+    group_span = group_span, summaries = acc$summaries, footnotes = fn,
+    footnote_rows = footnote_rows, source_rows = source_rows
   )
 }
