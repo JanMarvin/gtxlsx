@@ -97,7 +97,11 @@ gtxlsx_extract <- function(x, context = "html") {
   }
 
   caption <- opt_val(ops, "table_caption")
-  caption <- if (has_text(caption)) as.character(render_md(caption, context))[1L] else NULL
+  caption <- if (has_text(caption)) {
+    as.character(render_md(caption, context))[1L]
+    } else {
+      NULL
+    }
 
   list(
     caption      = caption,

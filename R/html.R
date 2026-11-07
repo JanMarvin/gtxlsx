@@ -231,7 +231,8 @@ html_strip <- function(x) {
     if (is.na(s)) return(NA_character_)
     s <- html_drop_embedded(s)
     s <- gsub("<br[^>]*>|</p>", "\n", s, perl = TRUE)
-    trimws(html_unescape(gsub("<[A-Za-z/!][^>]*>", "", s, perl = TRUE)), whitespace = "[\r\n]")
+    trimws(html_unescape(gsub("<[A-Za-z/!][^>]*>", "", s, perl = TRUE)),
+           whitespace = "[\r\n]")
   }, character(1L), USE.NAMES = FALSE)
   out
 }

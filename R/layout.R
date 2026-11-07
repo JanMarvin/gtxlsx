@@ -137,9 +137,9 @@ gtxlsx_plan <- function(g, th, row0, col0) {
     col_of = col_of, group_var = group_var, stub_vars = stub_vars,
     body_vars = body_vars, group_as_col = group_as_col,
     spanners = spanners, n_levels = n_levels, level_row = level_row,
-    caption_row = caption_row, title_row = title_row, subtitle_row = subtitle_row, label_row = label_row,
-    body_row = body_row, group_head = group_head, group_span = group_span,
-    summaries = acc$summaries, footnotes = fn, footnote_rows = footnote_rows,
-    source_rows = source_rows
+    caption_row = caption_row, title_row = title_row, subtitle_row = subtitle_row,
+    label_row = label_row, body_row = body_row, group_head = group_head,
+    group_span = group_span, summaries = acc$summaries, footnotes = fn,
+    footnote_rows = footnote_rows, source_rows = source_rows
   )
 }
