@@ -1,4 +1,4 @@
-# gtxlsx (development version)
+# gtxlsx 0.5.0
 
 * A row group with a missing id gets the heading `NA`, the way gt prints it.
 
