@@ -1,5 +1,9 @@
 # gtxlsx (development version)
 
+* `gt::tab_caption()` is written above the table, and `summary_rows()` /
+  `grand_summary_rows()` with `side = "top"` are written at the top of their
+  group (or the body) instead of the bottom.
+
 * A `gt::tab_footnote()` without `locations` is no longer dropped. It is written
   below the table without a mark, ahead of the marked footnotes, the way gt
   lists it (#3).

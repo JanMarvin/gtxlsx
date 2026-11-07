@@ -94,7 +94,11 @@ gtxlsx_extract <- function(x, context = "html") {
     )
   }
 
+  caption <- opt_val(ops, "table_caption")
+  caption <- if (has_text(caption)) as.character(render_md(caption, context))[1L] else NULL
+
   list(
+    caption      = caption,
     body         = as_df(built$`_body`),
     data         = dat,
     boxhead      = boxh,
@@ -108,6 +112,7 @@ gtxlsx_extract <- function(x, context = "html") {
     footnotes    = footnotes,
     source_notes = src,
     summary      = built$`_summary_build`$summary_df_display_list,
+    summary_side = summary_sides(built$`_summary`),
     options      = ops
   )
 }
@@ -193,4 +198,14 @@ is_bold <- function(weight, default = FALSE) {
   w <- tolower(weight)
   if (w %in% c("initial", "inherit")) return(default)
   w %in% c("bold", "bolder")
+}
+
+summary_sides <- function(spec) {
+  out <- character(0L)
+  for (s in spec) {
+    ids <- sub("^:GRAND_SUMMARY:$", "::GRAND_SUMMARY", as.character(s$groups))
+    side <- if (identical(s$side, "top")) "top" else "bottom"
+    out[setdiff(ids, names(out))] <- side
+  }
+  out
 }

@@ -193,6 +193,12 @@ write_gt_group <- function(wb, x, sheet, dims, gap, ...) {
 }
 
 gtxlsx_write_heading <- function(cc, g, th, p, cols) {
+  if (!is.na(p$caption_row)) {
+    txt <- g$caption
+    put_cell(cc, p$caption_row, cols[1L], txt, rich = is_rich(txt),
+             size = th$size, font = th$font, halign = "left")
+    add_merge(cc, p$caption_row, cols)
+  }
   if (!is.na(p$title_row)) {
     txt <- as.character(g$heading$title)[1L]
     put_cell(cc, p$title_row, cols[1L], txt, rich = is_rich(txt),
