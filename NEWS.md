@@ -1,5 +1,9 @@
 # gtxlsx (development version)
 
+* `gt::cols_width()` in pixels is applied again; the width was read as missing.
+
+* A `gt::cols_nanoplot()` cell no longer holds the svg's CSS as text.
+
 * `gt::tab_caption()` is written above the table, and `summary_rows()` /
   `grand_summary_rows()` with `side = "top"` are written at the top of their
   group (or the body) instead of the bottom.

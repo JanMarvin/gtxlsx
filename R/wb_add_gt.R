@@ -490,8 +490,10 @@ gtxlsx_col_widths <- function(wb, sheet, g, th, p, col_widths) {
     rep(NA_real_, length(p$col_vars))
   } else {
     vapply(p$col_vars, function(v) {
-      w <- boxh$column_width[[match(v, boxh$var)]]
-      if (is.null(w) || !length(w) || is.na(w[1L])) return(NA_real_)
+      w <- unlist(boxh$column_width[[match(v, boxh$var)]])
+      if (is.null(w) || !length(w) || is.na(w[1L]) || !grepl("px$", w[1L])) {
+        return(NA_real_)
+      }
       px_to_width(css_px(as.character(w)[1L]))
     }, numeric(1L))
   }

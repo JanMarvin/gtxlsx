@@ -356,3 +356,21 @@ test_that("summary rows on the top side follow the group heading", {
   expect_equal(col1[1:3], c(NA, "all", "a"))
   expect_equal(col1[4L], "tot")
 })
+
+test_that("cols_width() in pixels sets the column width", {
+  skip_if_not_installed("gt")
+  tbl <- gt::cols_width(gt::gt(data.frame(a = 1, b = 2)), a ~ gt::px(300))
+  wb <- wb_add_gt(openxlsx2::wb_workbook()$add_worksheet("x"), tbl)
+  w <- as.numeric(sub(".*width=\"([0-9.]+)\".*", "\\1", wb$worksheets[[1L]]$cols_attr))
+  expect_gt(w[1L], 30)
+  expect_lt(w[2L], 30)
+})
+
+test_that("a nanoplot leaves no svg or css text in the cell", {
+  skip_if_not_installed("gt")
+  skip_no_gt_fn("cols_nanoplot")
+  tbl <- gt::cols_nanoplot(gt::gt(data.frame(v = "1 2 3 4")), columns = v)
+  wb <- wb_add_gt(openxlsx2::wb_workbook()$add_worksheet("x"), tbl)
+  txt <- unlist(openxlsx2::wb_to_df(wb, col_names = FALSE))
+  expect_false(any(grepl("font-family|stroke", txt)))
+})

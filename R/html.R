@@ -80,6 +80,7 @@ html_runs <- function(text, base_px = 16, resolver = NULL) {
   stack <- list()
   void <- c("br", "hr", "img", "wbr", "input", "col", "meta", "link")
 
+  text <- html_drop_embedded(text)
   m <- gregexpr("<[^>]*>", text, perl = TRUE)[[1]]
   starts <- as.integer(m)
   lens <- attr(m, "match.length")
@@ -220,9 +221,15 @@ html_href <- function(x) {
   if (!length(hs)) NA_character_ else hs[1L]
 }
 
+# <svg>, <style> and <script> content is not text; gt writes nanoplots as <svg>
+html_drop_embedded <- function(s) {
+  gsub("<(svg|style|script)\\b[^>]*>.*?</\\1>", "", s, perl = TRUE, ignore.case = TRUE)
+}
+
 html_strip <- function(x) {
   out <- vapply(x, function(s) {
     if (is.na(s)) return(NA_character_)
+    s <- html_drop_embedded(s)
     s <- gsub("<br[^>]*>|</p>", "\n", s, perl = TRUE)
     trimws(html_unescape(gsub("<[^>]*>", "", s, perl = TRUE)), whitespace = "[\r\n]")
   }, character(1L), USE.NAMES = FALSE)
